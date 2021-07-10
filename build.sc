@@ -105,7 +105,7 @@ object mychiseltest extends dependencies.`chisel-testers2`.build.chiseltestCross
   def treadleModule: Option[PublishModule] = Some(mytreadle)
 }
 
-object playground extends CommonModule {
+object nucpu extends CommonModule {
 
   // add some scala ivy module you like here.
   override def ivyDeps = Agg(
