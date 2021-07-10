@@ -1,0 +1,20 @@
+[submodule "chisel3"]
+	path = dependencies/chisel3
+	url = git@github.com:chipsalliance/chisel3.git
+	branch = master
+[submodule "firrtl"]
+	path = dependencies/firrtl
+	url = git@github.com:chipsalliance/firrtl.git
+	branch = master
+[submodule "treadle"]
+	path = dependencies/treadle
+	url = git@github.com:chipsalliance/treadle.git
+	branch = master
+[submodule "chisel-testers2"]
+	path = dependencies/chisel-testers2
+	url = git@github.com:ucb-bar/chisel-testers2.git
+	branch = master
+[submodule "api-config-chipsalliance"]
+	path = dependencies/api-config-chipsalliance
+	url = git@github.com:chipsalliance/api-config-chipsalliance.git
+	branch = master

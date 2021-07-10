@@ -1,0 +1,10 @@
+out/
+.bsp/
+.idea/
+.mill-bin/
+
+# vim misc
+*.orig
+*.swp
+# idea
+.idea_modules
