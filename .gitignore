@@ -2,6 +2,7 @@ out/
 .bsp/
 .idea/
 .mill-bin/
+test_run_dir/
 
 # vim misc
 *.orig
