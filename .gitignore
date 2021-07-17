@@ -9,3 +9,5 @@ test_run_dir/
 *.swp
 # idea
 .idea_modules
+
+.DS_Store
