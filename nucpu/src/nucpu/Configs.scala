@@ -14,4 +14,10 @@ class Configs {
   val func3Width = 3
   val immWidth = 12
   val instAdd = 17
+  // regfile
+  val regNum = 32
+}
+
+class RVI {
+  val addi = 17
 }

@@ -19,6 +19,7 @@ class IDStage()(implicit val p: Configs) extends Module {
     val op1: UInt = Output(UInt(p.busWidth.W))
     val op2: UInt = Output(UInt(p.busWidth.W))
   })
+  override val desiredName = "id_stage"
   // I-type
   protected val opcode: UInt = Wire(io.inst(p.iTypeOpWidth - 1, 0))
   protected val rd: UInt = Wire(io.inst(p.iTypeOpWidth + p.rdWidth - 1, p.iTypeOpWidth))
