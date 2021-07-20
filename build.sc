@@ -12,6 +12,7 @@ import $file.dependencies.chisel3.build
 import $file.dependencies.firrtl.build
 import $file.dependencies.treadle.build
 import $file.dependencies.`chisel-testers2`.build
+import $file.dependencies.difftest.build
 import $file.dependencies.`api-config-chipsalliance`.`build-rules`.mill.build
 
 // Global Scala Version
@@ -105,7 +106,12 @@ object mychiseltest extends dependencies.`chisel-testers2`.build.chiseltestCross
   def treadleModule: Option[PublishModule] = Some(mytreadle)
 }
 
+object mydifftest extends CommonModule {
+  override def millSourcePath = os.pwd / "dependencies" / "difftest"
+}
+
 object nucpu extends CommonModule {
+  override def moduleDeps = super.moduleDeps ++ Seq(mydifftest)
 
   // add some scala ivy module you like here.
   override def ivyDeps = Agg(

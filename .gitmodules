@@ -18,3 +18,6 @@
 	path = dependencies/api-config-chipsalliance
 	url = git@github.com:chipsalliance/api-config-chipsalliance.git
 	branch = master
+[submodule "dependencies/difftest"]
+	path = dependencies/difftest
+	url = git@github.com:OpenXiangShan/difftest.git
