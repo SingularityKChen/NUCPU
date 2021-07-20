@@ -21,25 +21,29 @@ class IDStage()(implicit val p: Configs) extends Module {
   })
   override val desiredName = "id_stage"
   // I-type
-  protected val opcode: UInt = Wire(io.inst(p.iTypeOpWidth - 1, 0))
-  protected val rd: UInt = Wire(io.inst(p.iTypeOpWidth + p.rdWidth - 1, p.iTypeOpWidth))
-  protected val func3: UInt = Wire(io.inst(p.iTypeOpWidth + p.rdWidth + p.func3Width - 1, p.iTypeOpWidth + p.rdWidth))
-  protected val rs1: UInt = Wire(io.inst(p.instWidth - p.immWidth -1, p.instWidth - p.immWidth - p.rsWidth))
-  protected val imm: UInt = Wire(io.inst(p.instWidth - 1, p.instWidth - p.immWidth))
-  protected val inst_addi: Bool = Wire(!opcode(2) & !opcode(3) & opcode(4) & !opcode(5) & !opcode(6)
-    & !func3(0) & !func3(1) & !func3(2))
+  protected val opcode: UInt = io.inst(p.iTypeOpWidth - 1, 0)
+  protected val rd: UInt = io.inst(p.iTypeOpWidth + p.rdWidth - 1, p.iTypeOpWidth)
+  protected val func3: UInt = io.inst(p.iTypeOpWidth + p.rdWidth + p.func3Width - 1, p.iTypeOpWidth + p.rdWidth)
+  protected val rs1: UInt = io.inst(p.instWidth - p.immWidth -1, p.instWidth - p.immWidth - p.rsWidth)
+  protected val imm: UInt = io.inst(p.instWidth - 1, p.instWidth - p.immWidth)
+  protected val inst_addi: Bool = !opcode(2) & !opcode(3) & opcode(4) & !opcode(5) & !opcode(6) &
+    !func3(0) & !func3(1) & !func3(2)
 
   // arith inst: 10000; logic: 01000;
   // load-store: 00100; j: 00010;  sys: 000001
-  io.inst_type(4) := Mux(this.reset.asBool(), 0.U, inst_addi)
-  io.inst_opcode(0) := Mux(this.reset.asBool(), 0.U, inst_addi)
-  io.inst_opcode(1) := Mux(this.reset.asBool(), 0.U, 0.U)
-  io.inst_opcode(2) := Mux(this.reset.asBool(), 0.U, 0.U)
-  io.inst_opcode(3) := Mux(this.reset.asBool(), 0.U, 0.U)
-  io.inst_opcode(4) := Mux(this.reset.asBool(), 0.U, inst_addi)
-  io.inst_opcode(5) := Mux(this.reset.asBool(), 0.U, 0.U)
-  io.inst_opcode(6) := Mux(this.reset.asBool(), 0.U, 0.U)
-  io.inst_opcode(7) := Mux(this.reset.asBool(), 0.U, 0.U)
+  protected val inst_type_bool: Vec[Bool] = VecInit(0.U(p.typeWidth.W).asBools())
+  protected val inst_opcode_bool: Vec[Bool] = VecInit(0.U(p.opcodeWidth.W).asBools())
+  inst_type_bool(4) := Mux(this.reset.asBool(), 0.U, inst_addi)
+  inst_opcode_bool(0) := Mux(this.reset.asBool(), 0.U, inst_addi)
+  inst_opcode_bool(1) := Mux(this.reset.asBool(), 0.U, 0.U)
+  inst_opcode_bool(2) := Mux(this.reset.asBool(), 0.U, 0.U)
+  inst_opcode_bool(3) := Mux(this.reset.asBool(), 0.U, 0.U)
+  inst_opcode_bool(4) := Mux(this.reset.asBool(), 0.U, inst_addi)
+  inst_opcode_bool(5) := Mux(this.reset.asBool(), 0.U, 0.U)
+  inst_opcode_bool(6) := Mux(this.reset.asBool(), 0.U, 0.U)
+  inst_opcode_bool(7) := Mux(this.reset.asBool(), 0.U, 0.U)
+  io.inst_type := inst_type_bool.asUInt()
+  io.inst_opcode := inst_opcode_bool.asUInt()
 
   io.rs1_r_ena := Mux(this.reset.asBool(), false.B, io.inst_type(4))
   io.rs2_r_ena := false.B
@@ -50,5 +54,5 @@ class IDStage()(implicit val p: Configs) extends Module {
   io.rd_w_addr := Mux(this.reset.asBool(), 0.U, Mux(io.inst_type(4) === 1.U, rd, 0.U))
 
   io.op1 := Mux(this.reset.asBool(), 0.U, Mux(io.inst_type(4) === 1.U, io.rs1_data, 0.U))
-  io.op2 := Mux(this.reset.asBool(), 0.U, Mux(io.inst_type(4) === 1.U, Cat(Cat(Seq.fill(52)(imm(11))), imm), 0.U ))
+  io.op2 := Mux(this.reset.asBool(), 0.U, Mux(io.inst_type(4) === 1.U, Cat(Fill(52, imm(11)), imm), 0.U ))
 }

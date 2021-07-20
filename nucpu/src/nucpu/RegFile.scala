@@ -18,7 +18,7 @@ class RegFile()(implicit val p: Configs) extends Module {
   protected val regFiles: Vec[UInt] = VecInit(Seq.fill(p.regNum)(RegInit(0.U(p.busWidth.W))))
   protected val rData1: UInt = RegInit(0.U(p.busWidth.W))
   protected val rData2: UInt = RegInit(0.U(p.busWidth.W))
-  when(io.w_ena & (io.w_addr != 0.U)){
+  when(io.w_ena & (io.w_addr =/= 0.U)){
     regFiles(io.w_addr) := io.w_data
   }
   rData1 := Mux(io.r_ena1, regFiles(io.r_addr1), 0.U)

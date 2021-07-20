@@ -14,7 +14,7 @@ class EXEStage()(implicit val p: Configs) extends Module {
   private val isa = new RVI()
   override val desiredName = "exe_stage"
   protected val rdDataReg: UInt = RegInit(0.U(p.busWidth.W))
-  protected val immSum: UInt = Wire(io.op1 + io.op2)
+  protected val immSum: UInt = io.op1 + io.op2
   // TODO: change the exe logic with ALU
   rdDataReg := Mux(io.inst_opcode === isa.addi.U, immSum, 0.U)
   io.inst_type_o := io.inst_type_i
