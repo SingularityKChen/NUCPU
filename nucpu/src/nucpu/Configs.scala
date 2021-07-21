@@ -6,14 +6,13 @@ class Configs {
   val addrWidth = 5
   val typeWidth = 5
   val opcodeWidth = 8
-  // for inst
-  val instWidth = 32
-  val iTypeOpWidth = 7
-  val rdWidth = 5
-  val rsWidth = 5
-  val func3Width = 3
-  val immWidth = 12
-  val instAdd = 17
+  // for instruction
+  val instW = 32
+  val instOpW = 7
+  val instRdW = 5
+  val instRsW = 5
+  val instFunc3W = 3
+  val instImmW = 12
   // regfile
   val regNum = 32
 }

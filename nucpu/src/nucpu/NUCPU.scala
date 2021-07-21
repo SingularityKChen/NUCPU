@@ -4,9 +4,10 @@ import chisel3._
 
 class NUCPU()(implicit val p: Configs) extends Module {
   val io = IO(new Bundle {
-    val inst: UInt = Input(UInt(p.instWidth.W))
+    val inst: UInt = Input(UInt(p.instW.W))
     val inst_addr: UInt = Output(UInt(p.busWidth.W))
     val inst_ena: Bool = Output(Bool())
+    val data_out_debug: UInt = Output(UInt(p.busWidth.W))
   })
   protected val if_stage: IFStage = Module(new IFStage())
   protected val id_stage: IDStage = Module(new IDStage())
@@ -37,4 +38,6 @@ class NUCPU()(implicit val p: Configs) extends Module {
   regfile.io.w_addr := id_stage.io.rd_w_addr
   // exe_stage -> regfile
   regfile.io.w_data := exe_stage.io.rd_data
+  // debug
+  io.data_out_debug := exe_stage.io.rd_data
 }

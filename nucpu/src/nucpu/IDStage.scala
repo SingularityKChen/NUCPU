@@ -5,7 +5,7 @@ import chisel3.util._
 
 class IDStage()(implicit val p: Configs) extends Module {
   val io = IO(new Bundle {
-    val inst: UInt = Input(UInt(p.instWidth.W))
+    val inst: UInt = Input(UInt(p.instW.W))
     val rs1_data: UInt = Input(UInt(p.busWidth.W))
     val rs2_data: UInt = Input(UInt(p.busWidth.W))
     val rs1_r_ena: Bool = Output(Bool())
@@ -21,11 +21,11 @@ class IDStage()(implicit val p: Configs) extends Module {
   })
   override val desiredName = "id_stage"
   // I-type
-  protected val opcode: UInt = io.inst(p.iTypeOpWidth - 1, 0)
-  protected val rd: UInt = io.inst(p.iTypeOpWidth + p.rdWidth - 1, p.iTypeOpWidth)
-  protected val func3: UInt = io.inst(p.iTypeOpWidth + p.rdWidth + p.func3Width - 1, p.iTypeOpWidth + p.rdWidth)
-  protected val rs1: UInt = io.inst(p.instWidth - p.immWidth -1, p.instWidth - p.immWidth - p.rsWidth)
-  protected val imm: UInt = io.inst(p.instWidth - 1, p.instWidth - p.immWidth)
+  protected val opcode: UInt = io.inst(p.instOpW - 1, 0)
+  protected val rd: UInt = io.inst(p.instOpW + p.instRdW - 1, p.instOpW)
+  protected val func3: UInt = io.inst(p.instOpW + p.instRdW + p.instFunc3W - 1, p.instOpW + p.instRdW)
+  protected val rs1: UInt = io.inst(p.instW - p.instImmW -1, p.instW - p.instImmW - p.instRsW)
+  protected val imm: UInt = io.inst(p.instW - 1, p.instW - p.instImmW)
   protected val inst_addi: Bool = !opcode(2) & !opcode(3) & opcode(4) & !opcode(5) & !opcode(6) &
     !func3(0) & !func3(1) & !func3(2)
 
