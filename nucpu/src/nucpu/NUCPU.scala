@@ -1,6 +1,7 @@
 package nucpu
 
 import chisel3._
+import difftest._
 
 class NUCPU()(implicit val p: Configs) extends Module {
   val io = IO(new Bundle {
@@ -39,5 +40,18 @@ class NUCPU()(implicit val p: Configs) extends Module {
   // exe_stage -> regfile
   regfile.io.w_data := exe_stage.io.rd_data
   // debug
-  io.data_out_debug := exe_stage.io.rd_data
+  io.data_out_debug := exe_stage.io.rd_data  // For DiffTest
+  protected val commitDiffTest: DifftestInstrCommit = Module(new DifftestInstrCommit())
+  commitDiffTest.io.clock := this.clock
+  commitDiffTest.io.coreid := 0.U
+  commitDiffTest.io.index := 0.U
+  commitDiffTest.io.valid := if_stage.io.inst_ena && !this.reset.asBool()
+  commitDiffTest.io.pc := RegNext(if_stage.io.inst_adder)
+  commitDiffTest.io.instr := DontCare
+  commitDiffTest.io.skip := false.B
+  commitDiffTest.io.isRVC := false.B
+  commitDiffTest.io.scFailed := false.B
+  commitDiffTest.io.wen := RegNext(id_stage.io.rd_w_ena)
+  commitDiffTest.io.wdata := RegNext(exe_stage.io.rd_data)
+  commitDiffTest.io.wdest := RegNext(id_stage.io.rd_w_addr)
 }

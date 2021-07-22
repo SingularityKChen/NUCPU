@@ -5,6 +5,7 @@ import chisel3.stage.{ChiselGeneratorAnnotation, ChiselStage}
 import chiseltest._
 import chiseltest.experimental.TestOptionBuilder._
 import chiseltest.internal.{VerilatorBackendAnnotation, WriteVcdAnnotation}
+import difftestSim.SimTop
 import firrtl.options.TargetDirAnnotation
 import nucpu._
 import org.scalatest.flatspec.AnyFlatSpec
@@ -57,6 +58,11 @@ object Generator extends App {
   implicit val p: Configs = new Configs
   (new ChiselStage).run(Seq(
     ChiselGeneratorAnnotation(() => new NUCPU()),
+    TargetDirAnnotation(directory = "test_run_dir/NUCPU")
+  ))
+
+  (new ChiselStage).run(Seq(
+    ChiselGeneratorAnnotation(() => new SimTop()),
     TargetDirAnnotation(directory = "test_run_dir/NUCPU")
   ))
 }
