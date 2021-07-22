@@ -20,7 +20,8 @@
 	branch = master
 [submodule "dependencies/difftest"]
 	path = dependencies/difftest
-	url = git@github.com:OpenXiangShan/difftest.git
+	url = git@github.com:SingularityKChen/difftest.git
+	branch = xiangshan
 [submodule "AM/am-kernels"]
 	path = AM/am-kernels
 	url = https://github.com/NJU-ProjectN/am-kernels.git
