@@ -28,3 +28,7 @@
 	path = AM/abstract-machine
 	url = https://github.com/NJU-ProjectN/abstract-machine.git
 	branch = ysyx2021
+[submodule "NEMU"]
+	path = NEMU
+	url = git@github.com:OpenXiangShan/NEMU.git
+	branch = xs
