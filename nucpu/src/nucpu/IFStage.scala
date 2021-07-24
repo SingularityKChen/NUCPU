@@ -8,7 +8,7 @@ class IFStage()(implicit val p: Configs) extends Module {
     val inst_ena: Bool = Output(Bool())
   })
   override val desiredName = "if_stage"
-  protected val pc: UInt = RegInit(0.U(p.busWidth.W))
+  protected val pc: UInt = RegInit("h80000000".U(p.busWidth.W))
   pc := pc + 4.U
   io.inst_adder := pc
   io.inst_ena := !this.reset.asBool()
