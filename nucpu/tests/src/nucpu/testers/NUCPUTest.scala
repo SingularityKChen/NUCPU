@@ -15,7 +15,7 @@ import scala.math.pow
 import scala.util.Random
 
 class NUCPUTest extends AnyFlatSpec with Matchers with ChiselScalatestTester {
-  implicit val p: Configs = new Configs
+  implicit val p: Configs = new Configs(diffTest = false)
   protected val instructions: Instructions.type = Instructions
   behavior of "NUCPU"
 
@@ -55,7 +55,7 @@ class NUCPUTest extends AnyFlatSpec with Matchers with ChiselScalatestTester {
 }
 
 object Generator extends App {
-  implicit val p: Configs = new Configs
+  implicit val p: Configs = new Configs(diffTest = true)
   (new ChiselStage).run(Seq(
     ChiselGeneratorAnnotation(() => new NUCPU()),
     TargetDirAnnotation(directory = "test_run_dir/NUCPU")

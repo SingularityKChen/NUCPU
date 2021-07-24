@@ -1,6 +1,6 @@
 package nucpu
 
-class Configs {
+class Configs(val diffTest: Boolean) {
   val busWidth = 64
   // for io
   val addrWidth = 5

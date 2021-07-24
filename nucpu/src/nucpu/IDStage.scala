@@ -2,8 +2,6 @@ package nucpu
 
 import chisel3._
 import chisel3.util._
-import chisel3.util.experimental.decode._
-import difftest.DifftestInstrCommit
 
 class IDStage()(implicit val p: Configs) extends Module {
   val io = IO(new Bundle {
