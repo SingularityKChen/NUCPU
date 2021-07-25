@@ -78,5 +78,5 @@ object DecodeParams {
   val FN_SLT = "1100"
   val FN_SGE = "1101"
   val FN_SLTU = "1110"
-  val FN_SGEU = "1111
+  val FN_SGEU = "1111"
 }
