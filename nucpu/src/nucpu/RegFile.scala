@@ -16,7 +16,7 @@ class RegFile()(implicit val p: Configs) extends Module {
     val r_ena2: Bool = Input(Bool())
   })
   override val desiredName = "regfile"
-  protected val regFiles: Mem[UInt] = Mem(p.regNum, UInt(p.busWidth.W))
+  protected val regFiles: Vec[UInt] = RegInit(VecInit(Seq.fill(p.regNum)(0.U(p.busWidth.W))))
   protected val rData1: UInt = RegInit(0.U(p.busWidth.W))
   protected val rData2: UInt = RegInit(0.U(p.busWidth.W))
   protected val w_addrRegNext: UInt = RegNext(io.w_addr)

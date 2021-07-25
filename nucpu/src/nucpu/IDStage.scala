@@ -2,6 +2,7 @@ package nucpu
 
 import chisel3._
 import chisel3.util._
+import chisel3.util.experimental.decode._
 
 class IDStage()(implicit val p: Configs) extends Module {
   val io = IO(new Bundle {
@@ -28,7 +29,8 @@ class IDStage()(implicit val p: Configs) extends Module {
   protected val imm: UInt = io.inst(p.instW - 1, p.instW - p.instImmW)
   protected val inst_addi: Bool = !opcode(2) & !opcode(3) & opcode(4) & !opcode(5) & !opcode(6) &
     !func3(0) & !func3(1) & !func3(2)
-//  protected val instDecoder: UInt = decoder()
+  protected val minimizer = QMCMinimizer
+  protected val instDecoder: UInt = decoder(minimizer = minimizer, input = ???, truthTable = ???)
 
   // arith inst: 10000; logic: 01000;
   // load-store: 00100; j: 00010;  sys: 000001
@@ -48,13 +50,13 @@ class IDStage()(implicit val p: Configs) extends Module {
 
   io.rs1_r_ena := Mux(this.reset.asBool(), false.B, io.inst_type(4))
   io.rs2_r_ena := false.B
-  io.rs1_r_addr := Mux(this.reset.asBool(), 0.U, Mux(io.inst_type(4) === 1.U, rs1, 0.U))
+  io.rs1_r_addr := Mux(this.reset.asBool(), 0.U, Mux(io.inst_type(4), rs1, 0.U))
   io.rs2_r_addr := 0.U
 
   io.rd_w_ena := Mux(this.reset.asBool(), false.B, io.inst_type(4))
-  io.rd_w_addr := Mux(this.reset.asBool(), 0.U, Mux(io.inst_type(4) === 1.U, rd, 0.U))
+  io.rd_w_addr := Mux(this.reset.asBool(), 0.U, Mux(io.inst_type(4), rd, 0.U))
 
-  io.op1 := Mux(this.reset.asBool(), 0.U, Mux(io.inst_type(4) === 1.U, io.rs1_data, 0.U))
-  io.op2 := Mux(this.reset.asBool(), 0.U, Mux(io.inst_type(4) === 1.U, Cat(Fill(52, imm(11)), imm), 0.U ))
+  io.op1 := Mux(this.reset.asBool(), 0.U, Mux(io.inst_type(4), io.rs1_data, 0.U))
+  io.op2 := Mux(this.reset.asBool(), 0.U, Mux(io.inst_type(4), Cat(Fill(52, imm(11)), imm), 0.U ))
 
 }
