@@ -22,10 +22,6 @@ class Configs(val diffTest: Boolean) {
   val regNum = 32
 }
 
-class RVI {
-  val addi = 17
-}
-
 object DecodeParams {
   val A1_X = "??"
   val A1_ZERO = "00"
@@ -90,7 +86,7 @@ object DecodeParams {
     //   | | | | | | | |   |       |       |      |      |         | |        | | | | | div       | fence
     //   | | | | | | | |   |       |       |      |      |         | |        | | | | | | wxd     | | amo
     //   | | | | | | | | scie      |       |      |      |         | |        | | | | | | |       | | | dp
-    N,X,X,X,X,X,X,X,X,A2_X, A1_X,IMM_X, DW_X,FN_X,N,M_X,X,X,X,X,X,X,X,CSR_X,X,X,X,X
+    N,   X,X,X,X,X,X,X,X,A2_X,   A1_X,   IMM_X, DW_X,  FN_X,      N,M_X,      X,X,X,X,X,X,X,CSR_X,X,X,X,X
   ).reduce(_ + _)
   val outWidth: Int = defaultDec.length
   val rv64ITruthTable: TruthTable =  TruthTable(Map(

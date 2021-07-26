@@ -1,23 +1,33 @@
 package nucpu
 
 import chisel3._
+import chisel3.util._
+import DecodeParams._
 
 class EXEStage()(implicit val p: Configs) extends Module {
   val io = IO(new Bundle {
-    val inst_type_i: UInt = Input(UInt(p.typeWidth.W))
-    val inst_opcode: UInt = Input(UInt(p.opcodeWidth.W))
-    val op1: UInt = Input(UInt(p.busWidth.W))
-    val op2: UInt = Input(UInt(p.busWidth.W))
-    val inst_type_o: UInt = Output(UInt(p.typeWidth.W))
+    val alu_fn: UInt = Input(UInt(FN_X.length.W))
+    val pc: UInt = Input(UInt(p.busWidth.W))
+    val imm: UInt = Input(UInt(p.busWidth.W))
+    val rs1_data: UInt = Input(UInt(p.busWidth.W))
+    val rs2_data: UInt = Input(UInt(p.busWidth.W))
+    val sel_alu1: UInt = Input(UInt(width = A1_X.length.W))
+    val sel_alu2: UInt = Input(UInt(width = A2_X.length.W))
     val rd_data: UInt = Output(UInt(p.busWidth.W))
   })
-  private val isa = new RVI()
   override val desiredName = "exe_stage"
+  protected val alu: ALU = Module(new ALU())
+  alu.io.func := io.alu_fn
+  alu.io.op1 := MuxLookup(io.sel_alu1, 0.S, Array(
+    ("b" + A1_PC).U -> io.pc.asSInt(),
+    ("b" + A1_RS1).U -> io.rs1_data.asSInt()
+  ))
+  // FIXME: A2_SIZE
+  alu.io.op2 := MuxLookup(io.sel_alu2, 0.S, Array(
+    ("b" + A2_IMM).U -> io.imm.asSInt(),
+    ("b" + A2_RS2).U -> io.rs2_data.asSInt()
+  ))
   protected val rdDataReg: UInt = RegInit(0.U(p.busWidth.W))
-  // TODO: check the sign
-  protected val immSum: SInt = io.op1.asSInt() + io.op2.asSInt()
-  // TODO: change the exe logic with ALU
-  rdDataReg := Mux(io.inst_opcode === isa.addi.U, immSum.asUInt(), 0.U)
-  io.inst_type_o := io.inst_type_i
+  rdDataReg := alu.io.results.asUInt()
   io.rd_data := rdDataReg
 }
