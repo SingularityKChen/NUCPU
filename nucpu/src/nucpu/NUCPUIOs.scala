@@ -32,4 +32,19 @@ class InstCtrlIOs extends Bundle {
   val fence: Bool = Bool()
   val amo: Bool = Bool()
   val dp: Bool = Bool()
+  def connectDecoder(decoderOutput: UInt): Unit = {
+    val ios = Seq(legal, fp, rocc, branch, jal, jalr, rxs2, rxs1, scie, sel_alu2,
+      sel_alu1, sel_imm, alu_dw, alu_fn, mem, mem_cmd,
+      rfs1, rfs2, rfs3, wfd, mul, div, wxd, csr, fence_i, fence, amo, dp)
+    var curBit = 0
+    for (io <- ios.reverse) {
+      val curIOBit = io.getWidth
+      if (curIOBit == 1) {
+        io := decoderOutput(curBit)
+      } else {
+        io := decoderOutput(curBit + curIOBit -1, curBit)
+      }
+      curBit += curIOBit
+    }
+  }
 }
