@@ -1,6 +1,7 @@
 package nucpu
 
 import chisel3._
+import chisel3.util.ShiftRegister
 import difftest._
 
 class NUCPU()(implicit val p: Configs) extends Module {
@@ -47,7 +48,7 @@ class NUCPU()(implicit val p: Configs) extends Module {
     commitDiffTest.io.clock := this.clock
     commitDiffTest.io.coreid := 0.U
     commitDiffTest.io.index := 0.U
-    commitDiffTest.io.valid := if_stage.io.inst_ena && !this.reset.asBool()
+    commitDiffTest.io.valid := RegNext(if_stage.io.inst_ena && !this.reset.asBool())
     commitDiffTest.io.pc := RegNext(if_stage.io.inst_adder)
     commitDiffTest.io.instr := RegNext(io.inst)
     commitDiffTest.io.skip := false.B
