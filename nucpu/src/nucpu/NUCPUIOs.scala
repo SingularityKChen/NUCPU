@@ -3,6 +3,55 @@ package nucpu
 import chisel3._
 import DecodeParams._
 
+class IFStageIOs()(implicit val p: Configs) extends Bundle {
+  val nextPC: UInt = Input(UInt(p.busWidth.W))
+  val jumpPC: Bool = Input(Bool())
+  val curPC: UInt = Output(UInt(p.busWidth.W))
+  val instEn: Bool = Output(Bool())
+}
+
+class RegFileIOs()(implicit val p: Configs) extends Bundle {
+  val wAddr: UInt = Input(UInt(p.addrWidth.W))
+  val wData: UInt = Input(UInt(p.busWidth.W))
+  val wEn: Bool = Input(Bool())
+  val rs1RAddr: UInt = Input(UInt(p.addrWidth.W))
+  val rs1RData: UInt = Output(UInt(p.busWidth.W))
+  val rs1REn: Bool = Input(Bool())
+  val rs2RAddr: UInt = Input(UInt(p.addrWidth.W))
+  val rs2RData: UInt = Output(UInt(p.busWidth.W))
+  val rs2REn: Bool = Input(Bool())
+}
+
+class IDStageIOs()(implicit val p: Configs) extends Bundle {
+  val inst: UInt = Input(UInt(p.instW.W))
+  val curPC: UInt = Input(UInt(p.busWidth.W))
+  val rs1REn: Bool = Output(Bool())
+  val rs2REn: Bool = Output(Bool())
+  val rs1RAddr: UInt = Output(UInt(p.addrWidth.W))
+  val rs2RAddr: UInt = Output(UInt(p.addrWidth.W))
+  val rdWEn: Bool = Output(Bool())
+  val rdWAddr: UInt = Output(UInt(p.addrWidth.W))
+  val immData: UInt = Output(UInt(p.busWidth.W))
+  val aluFn: UInt = Output(UInt(FN_X.length.W))
+  val alu1Sel: UInt = Output(UInt(width = A1_X.length.W))
+  val alu2Sel: UInt = Output(UInt(width = A2_X.length.W))
+  val jal: Bool = Output(Bool())
+  val br: Bool = Output(Bool())
+  /** The targeted PC address if branch is taken or jal*/
+  val jumpPCVal: UInt = Output(UInt(p.busWidth.W))
+}
+
+class EXEStageIOs()(implicit val p: Configs) extends Bundle {
+  val aluFn: UInt = Input(UInt(FN_X.length.W))
+  val pc: UInt = Input(UInt(p.busWidth.W))
+  val imm: UInt = Input(UInt(p.busWidth.W))
+  val rs1Data: UInt = Input(UInt(p.busWidth.W))
+  val rs2Data: UInt = Input(UInt(p.busWidth.W))
+  val alu1Sel: UInt = Input(UInt(width = A1_X.length.W))
+  val alu2Sel: UInt = Input(UInt(width = A2_X.length.W))
+  val rdData: UInt = Output(UInt(p.busWidth.W))
+}
+
 class InstCtrlIOs extends Bundle {
   val legal: Bool = Bool()
   val fp: Bool = Bool()
@@ -16,14 +65,14 @@ class InstCtrlIOs extends Bundle {
   val rxs1: Bool = Bool()
   val scie: Bool = Bool()
   /** Select signal for op2 in ALU module */
-  val sel_alu2: UInt = Bits(width = A2_X.length.W)
+  val alu2Sel: UInt = Bits(width = A2_X.length.W)
   /** Select signal for op1 in ALU module */
-  val sel_alu1: UInt = Bits(width = A1_X.length.W)
+  val alu1Sel: UInt = Bits(width = A1_X.length.W)
   /** Select signal for imm value*/
-  val sel_imm: UInt = Bits(width = IMM_X.length.W)
-  val alu_dw: Bool = Bool()
+  val immSel: UInt = Bits(width = IMM_X.length.W)
+  val aluDW: Bool = Bool()
   /** ALU function code */
-  val alu_fn: UInt = Bits(width = FN_X.length.W)
+  val aluFn: UInt = Bits(width = FN_X.length.W)
   val mem: Bool = Bool()
   val mem_cmd: UInt = Bits(width = M_X.length.W)
   val rfs1: Bool = Bool()
@@ -35,14 +84,14 @@ class InstCtrlIOs extends Bundle {
   /** write enable */
   val wxd: Bool = Bool()
   val csr: UInt = Bits(width = CSR_X.length.W)
-  val fence_i: Bool = Bool()
+  val fenceI: Bool = Bool()
   val fence: Bool = Bool()
   val amo: Bool = Bool()
   val dp: Bool = Bool()
   def connectDecoder(decoderOutput: UInt): Unit = {
-    val ios = Seq(legal, fp, rocc, branch, jal, jalr, rxs2, rxs1, scie, sel_alu2,
-      sel_alu1, sel_imm, alu_dw, alu_fn, mem, mem_cmd,
-      rfs1, rfs2, rfs3, wfd, mul, div, wxd, csr, fence_i, fence, amo, dp)
+    val ios = Seq(legal, fp, rocc, branch, jal, jalr, rxs2, rxs1, scie, alu2Sel,
+      alu1Sel, immSel, aluDW, aluFn, mem, mem_cmd,
+      rfs1, rfs2, rfs3, wfd, mul, div, wxd, csr, fenceI, fence, amo, dp)
     var curBit = 0
     for (io <- ios.reverse) {
       val curIOBit = io.getWidth
@@ -54,4 +103,10 @@ class InstCtrlIOs extends Bundle {
       curBit += curIOBit
     }
   }
+}
+
+class NUCPUIOs()(implicit val p: Configs) extends Bundle {
+  val inst: UInt = Input(UInt(p.instW.W))
+  val instAddr: UInt = Output(UInt(p.busWidth.W))
+  val instValid: Bool = Output(Bool())
 }

@@ -5,49 +5,45 @@ import chisel3.util._
 import difftest._
 
 class NUCPU()(implicit val p: Configs) extends Module {
-  val io = IO(new Bundle {
-    val inst: UInt = Input(UInt(p.instW.W))
-    val inst_addr: UInt = Output(UInt(p.busWidth.W))
-    val inst_ena: Bool = Output(Bool())
-  })
+  val io: NUCPUIOs = IO(new NUCPUIOs())
   // TODO: if_stage.reset, to clear PC
-  protected val if_stage: IFStage = Module(new IFStage())
-  protected val id_stage: IDStage = Module(new IDStage())
-  protected val exe_stage: EXEStage = Module(new EXEStage())
-  protected val regfile: RegFile = Module(new RegFile())
+  protected val ifStage: IFStage = Module(new IFStage())
+  protected val idStage: IDStage = Module(new IDStage())
+  protected val exeStage: EXEStage = Module(new EXEStage())
+  protected val regFile: RegFile = Module(new RegFile())
   // inst fetch
-  io.inst_addr := if_stage.io.inst_adder
-  io.inst_ena := if_stage.io.inst_ena
+  io.instAddr := ifStage.io.curPC
+  io.instValid := ifStage.io.instEn
   // if_stage -> exe_stage
-  exe_stage.io.pc := if_stage.io.inst_adder
+  exeStage.io.pc := ifStage.io.curPC
   // inst decode
-  id_stage.io.inst := io.inst
-  id_stage.io.curPC := if_stage.io.inst_adder
+  idStage.io.inst := io.inst
+  idStage.io.curPC := ifStage.io.curPC
   // id_stage -> if_stage
-  if_stage.io.nextPC := id_stage.io.jumpPCVal
+  ifStage.io.nextPC := idStage.io.jumpPCVal
   // id_stage -> regfile
-  regfile.io.r_addr1 := id_stage.io.rs1_r_addr
-  regfile.io.r_ena1 := id_stage.io.rs1_r_ena
-  regfile.io.r_addr2 := id_stage.io.rs2_r_addr
-  regfile.io.r_ena2 := id_stage.io.rs2_r_ena
+  regFile.io.rs1RAddr := idStage.io.rs1RAddr
+  regFile.io.rs1REn := idStage.io.rs1REn
+  regFile.io.rs2RAddr := idStage.io.rs2RAddr
+  regFile.io.rs2REn := idStage.io.rs2REn
   // exe
   // regfile -> exe_stage
-  exe_stage.io.rs1_data := regfile.io.r_data1
-  exe_stage.io.rs2_data := regfile.io.r_data2
+  exeStage.io.rs1Data := regFile.io.rs1RData
+  exeStage.io.rs2Data := regFile.io.rs2RData
   // id_stage -> exe_stage
-  exe_stage.io.imm := id_stage.io.imm_data
-  exe_stage.io.alu_fn := id_stage.io.alu_fn
-  exe_stage.io.sel_alu1 := id_stage.io.sel_alu1
-  exe_stage.io.sel_alu2 := id_stage.io.sel_alu2
+  exeStage.io.imm := idStage.io.immData
+  exeStage.io.aluFn := idStage.io.aluFn
+  exeStage.io.alu1Sel := idStage.io.alu1Sel
+  exeStage.io.alu2Sel := idStage.io.alu2Sel
   // write back
   // exe_stage -> if_stage
-  protected val brTaken: Bool = id_stage.io.br & exe_stage.io.rd_data(0)
-  if_stage.io.jumpPC := id_stage.io.jal | brTaken
+  protected val brTaken: Bool = idStage.io.br & exeStage.io.rdData(0)
+  ifStage.io.jumpPC := idStage.io.jal | brTaken
   // id_stage -> regfile
-  regfile.io.w_ena := id_stage.io.rd_w_ena
-  regfile.io.w_addr := id_stage.io.rd_w_addr
+  regFile.io.wEn := idStage.io.rdWEn
+  regFile.io.wAddr := idStage.io.rdWAddr
   // exe_stage -> regfile
-  regfile.io.w_data := exe_stage.io.rd_data
+  regFile.io.wData := exeStage.io.rdData
   // For DiffTest
   // Commit
   if (p.diffTest) {
@@ -55,15 +51,15 @@ class NUCPU()(implicit val p: Configs) extends Module {
     commitDiffTest.io.clock := this.clock
     commitDiffTest.io.coreid := 0.U
     commitDiffTest.io.index := 0.U
-    commitDiffTest.io.valid := RegNext(RegNext(if_stage.io.inst_ena && !this.reset.asBool(), false.B), false.B)
-    commitDiffTest.io.pc := RegNext(RegNext(if_stage.io.inst_adder, 0.U), 0.U)
+    commitDiffTest.io.valid := RegNext(RegNext(ifStage.io.instEn && !this.reset.asBool(), false.B), false.B)
+    commitDiffTest.io.pc := RegNext(RegNext(ifStage.io.curPC, 0.U), 0.U)
     commitDiffTest.io.instr := RegNext(RegNext(io.inst))
     commitDiffTest.io.skip := false.B
     commitDiffTest.io.isRVC := false.B
     commitDiffTest.io.scFailed := false.B
-    commitDiffTest.io.wen := RegNext(RegNext(id_stage.io.rd_w_ena))
-    commitDiffTest.io.wdata := RegNext(exe_stage.io.rd_data)
-    commitDiffTest.io.wdest := RegNext(RegNext(id_stage.io.rd_w_addr))
+    commitDiffTest.io.wen := RegNext(RegNext(idStage.io.rdWEn))
+    commitDiffTest.io.wdata := RegNext(exeStage.io.rdData)
+    commitDiffTest.io.wdest := RegNext(RegNext(idStage.io.rdWAddr))
   }
   // CSR State
   if (p.diffTest) {
@@ -96,7 +92,7 @@ class NUCPU()(implicit val p: Configs) extends Module {
     trapDIffTest.io.coreid   := 0.U
     trapDIffTest.io.valid    := RegNext(RegNext(io.inst === "h0000006b".U))
     trapDIffTest.io.code     := 0.U // GoodTrap
-    trapDIffTest.io.pc       := RegNext(RegNext(if_stage.io.inst_adder, 0.U), 0.U)
+    trapDIffTest.io.pc       := RegNext(RegNext(ifStage.io.curPC, 0.U), 0.U)
     trapDIffTest.io.cycleCnt := 0.U
     trapDIffTest.io.instrCnt := 0.U
   }

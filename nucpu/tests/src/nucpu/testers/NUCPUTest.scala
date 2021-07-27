@@ -38,7 +38,7 @@ class NUCPUTest extends AnyFlatSpec with Matchers with ChiselScalatestTester {
       println(s"string: ${instructions.ADDI.toString}")
       // FIXME: use address to read the instruction instead
       for (_ <- 0 until testCaseNum) {
-        while (!dutIO.inst_ena.peek().litToBoolean) {
+        while (!dutIO.instValid.peek().litToBoolean) {
           clock.step()
         }
         val immValue = Random.nextInt(pow(2, p.instImmW - 1).toInt).toBinaryString

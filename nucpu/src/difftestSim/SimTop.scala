@@ -14,8 +14,8 @@ class SimTop()(implicit val p: Configs) extends Module {
   protected val mem: RAMHelper = Module(new RAMHelper())
   mem.io.clk := this.clock
   // FIXME: correct the connections
-  mem.io.en := !this.reset.asBool() && nucpu.io.inst_ena
-  mem.io.rIdx := nucpu.io.inst_addr
+  mem.io.en := !this.reset.asBool() && nucpu.io.instValid
+  mem.io.rIdx := nucpu.io.instAddr
   mem.io.wIdx := DontCare
   mem.io.wen := DontCare
   mem.io.wdata := DontCare
