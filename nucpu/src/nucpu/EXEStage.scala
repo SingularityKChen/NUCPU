@@ -18,16 +18,16 @@ class EXEStage()(implicit val p: Configs) extends Module {
   override val desiredName = "exe_stage"
   protected val alu: ALU = Module(new ALU())
   alu.io.func := io.alu_fn
-  alu.io.op1 := MuxLookup(io.sel_alu1, 0.S, Array(
-    ("b" + A1_PC).U -> io.pc.asSInt(),
-    ("b" + A1_RS1).U -> io.rs1_data.asSInt()
+  alu.io.op1 := MuxLookup(io.sel_alu1, 0.U, Array(
+    ("b" + A1_PC).U -> io.pc,
+    ("b" + A1_RS1).U -> io.rs1_data
   ))
   // FIXME: A2_SIZE
-  alu.io.op2 := MuxLookup(io.sel_alu2, 0.S, Array(
-    ("b" + A2_IMM).U -> io.imm.asSInt(),
-    ("b" + A2_RS2).U -> io.rs2_data.asSInt()
+  alu.io.op2 := MuxLookup(io.sel_alu2, 0.U, Array(
+    ("b" + A2_IMM).U -> io.imm,
+    ("b" + A2_RS2).U -> io.rs2_data
   ))
   protected val rdDataReg: UInt = RegInit(0.U(p.busWidth.W))
-  rdDataReg := alu.io.results.asUInt()
+  rdDataReg := alu.io.results
   io.rd_data := rdDataReg
 }
