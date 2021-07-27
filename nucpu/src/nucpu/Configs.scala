@@ -20,6 +20,8 @@ class Configs(val diffTest: Boolean) {
   val instImmW = 12
   // regfile
   val regNum = 32
+  // pc init value
+  val pcStart = "h80000000"
 }
 
 object DecodeParams {
@@ -64,18 +66,25 @@ object DecodeParams {
 
   val FN_X = "????"
   val FN_ADD = "0000"
+  /** shift left */
   val FN_SL = "0001"
   val FN_SEQ = "0010"
   val FN_SNE = "0011"
   val FN_XOR = "0100"
+  /** shift right logical */
   val FN_SR = "0101"
   val FN_OR = "0110"
   val FN_AND = "0111"
   val FN_SUB = "1010"
+  /** shift right arithmetic */
   val FN_SRA = "1011"
+  /** set if less than, signed */
   val FN_SLT = "1100"
+  /** set if greater or equals to, signed */
   val FN_SGE = "1101"
+  /** set if less than, unsigned */
   val FN_SLTU = "1110"
+  /** set if greater or equals to, unsigned */
   val FN_SGEU = "1111"
   val defaultDec: String = Seq(
     //           jal                                                          renf1               fence.i

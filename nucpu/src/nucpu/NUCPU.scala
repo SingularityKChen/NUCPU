@@ -3,15 +3,14 @@ package nucpu
 import chisel3._
 import chisel3.util._
 import difftest._
-import org.w3c.dom.events.MouseEvent
 
 class NUCPU()(implicit val p: Configs) extends Module {
   val io = IO(new Bundle {
     val inst: UInt = Input(UInt(p.instW.W))
     val inst_addr: UInt = Output(UInt(p.busWidth.W))
     val inst_ena: Bool = Output(Bool())
-    val data_out_debug: UInt = Output(UInt(p.busWidth.W))
   })
+  // TODO: if_stage.reset, to clear PC
   protected val if_stage: IFStage = Module(new IFStage())
   protected val id_stage: IDStage = Module(new IDStage())
   protected val exe_stage: EXEStage = Module(new EXEStage())
@@ -23,6 +22,9 @@ class NUCPU()(implicit val p: Configs) extends Module {
   exe_stage.io.pc := if_stage.io.inst_adder
   // inst decode
   id_stage.io.inst := io.inst
+  id_stage.io.curPC := if_stage.io.inst_adder
+  // id_stage -> if_stage
+  if_stage.io.nextPC := id_stage.io.jumpPCVal
   // id_stage -> regfile
   regfile.io.r_addr1 := id_stage.io.rs1_r_addr
   regfile.io.r_ena1 := id_stage.io.rs1_r_ena
@@ -38,13 +40,14 @@ class NUCPU()(implicit val p: Configs) extends Module {
   exe_stage.io.sel_alu1 := id_stage.io.sel_alu1
   exe_stage.io.sel_alu2 := id_stage.io.sel_alu2
   // write back
+  // exe_stage -> if_stage
+  protected val brTaken: Bool = id_stage.io.br & exe_stage.io.rd_data(0)
+  if_stage.io.jumpPC := id_stage.io.jal | brTaken
   // id_stage -> regfile
   regfile.io.w_ena := id_stage.io.rd_w_ena
   regfile.io.w_addr := id_stage.io.rd_w_addr
   // exe_stage -> regfile
   regfile.io.w_data := exe_stage.io.rd_data
-  // debug
-  io.data_out_debug := exe_stage.io.rd_data
   // For DiffTest
   // Commit
   if (p.diffTest) {

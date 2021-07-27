@@ -29,6 +29,12 @@ class NUCPUTest extends AnyFlatSpec with Matchers with ChiselScalatestTester {
       dut.reset.poke(true.B)
       clock.step()
       dut.reset.poke(false.B)
+      dutIO.inst.poke("h00100093".U)
+      clock.step()
+      dutIO.inst.poke("h00200093".U)
+      clock.step()
+      dutIO.inst.poke("h00108093".U)
+      clock.step()
       println(s"string: ${instructions.ADDI.toString}")
       // FIXME: use address to read the instruction instead
       for (_ <- 0 until testCaseNum) {

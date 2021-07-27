@@ -8,6 +8,7 @@ import nucpu.DecodeParams._
 class IDStage()(implicit val p: Configs) extends Module {
   val io = IO(new Bundle {
     val inst: UInt = Input(UInt(p.instW.W))
+    val curPC: UInt = Input(UInt(p.busWidth.W))
     val rs1_r_ena: Bool = Output(Bool())
     val rs2_r_ena: Bool = Output(Bool())
     val rs1_r_addr: UInt = Output(UInt(p.addrWidth.W))
@@ -18,6 +19,10 @@ class IDStage()(implicit val p: Configs) extends Module {
     val alu_fn: UInt = Output(UInt(FN_X.length.W))
     val sel_alu1: UInt = Output(UInt(width = A1_X.length.W))
     val sel_alu2: UInt = Output(UInt(width = A2_X.length.W))
+    val jal: Bool = Output(Bool())
+    val br: Bool = Output(Bool())
+    /** The targeted PC address if branch is taken or jal*/
+    val jumpPCVal: UInt = Output(UInt(p.busWidth.W))
   })
   override val desiredName = "id_stage"
   // TODO: add more
@@ -45,9 +50,13 @@ class IDStage()(implicit val p: Configs) extends Module {
     io.inst(20),
     Mux(instCtrlWires.sel_imm === s"b$IMM_S".U, io.inst(7), 0.U)
   )
+  protected val imm: UInt = Cat(Fill(p.busWidth - 31, immSign), imm30_20, imm19_12, imm11, imm10_5, imm4_1, imm0)
   io.alu_fn := instCtrlWires.alu_fn
   io.sel_alu1 := instCtrlWires.sel_alu1
   io.sel_alu2 := instCtrlWires.sel_alu2
+  io.jal := instCtrlWires.jal
+  io.br := instCtrlWires.branch
+  io.jumpPCVal := io.curPC + imm
   io.rs1_r_ena := instCtrlWires.rxs1
   io.rs2_r_ena := instCtrlWires.rxs2
   io.rs1_r_addr := rs1
@@ -55,5 +64,5 @@ class IDStage()(implicit val p: Configs) extends Module {
   io.rd_w_ena := instCtrlWires.wxd
   //FIXME
   io.rd_w_addr := rd
-  io.imm_data := Cat(Fill(p.busWidth - 31, immSign), imm30_20, imm19_12, imm11, imm10_5, imm4_1, imm0)
+  io.imm_data := imm
 }
