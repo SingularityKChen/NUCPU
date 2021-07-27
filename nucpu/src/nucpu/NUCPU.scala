@@ -1,7 +1,9 @@
 package nucpu
 
 import chisel3._
+import chisel3.util._
 import difftest._
+import org.w3c.dom.events.MouseEvent
 
 class NUCPU()(implicit val p: Configs) extends Module {
   val io = IO(new Bundle {
@@ -44,19 +46,55 @@ class NUCPU()(implicit val p: Configs) extends Module {
   // debug
   io.data_out_debug := exe_stage.io.rd_data
   // For DiffTest
+  // Commit
   if (p.diffTest) {
     val commitDiffTest: DifftestInstrCommit = Module(new DifftestInstrCommit())
     commitDiffTest.io.clock := this.clock
     commitDiffTest.io.coreid := 0.U
     commitDiffTest.io.index := 0.U
-    commitDiffTest.io.valid := RegNext(if_stage.io.inst_ena && !this.reset.asBool())
-    commitDiffTest.io.pc := RegNext(if_stage.io.inst_adder)
-    commitDiffTest.io.instr := RegNext(io.inst)
+    commitDiffTest.io.valid := RegNext(RegNext(if_stage.io.inst_ena && !this.reset.asBool(), false.B), false.B)
+    commitDiffTest.io.pc := RegNext(RegNext(if_stage.io.inst_adder, 0.U), 0.U)
+    commitDiffTest.io.instr := RegNext(RegNext(io.inst))
     commitDiffTest.io.skip := false.B
     commitDiffTest.io.isRVC := false.B
     commitDiffTest.io.scFailed := false.B
-    commitDiffTest.io.wen := RegNext(id_stage.io.rd_w_ena)
-    commitDiffTest.io.wdata := exe_stage.io.rd_data
-    commitDiffTest.io.wdest := RegNext(id_stage.io.rd_w_addr)
+    commitDiffTest.io.wen := RegNext(RegNext(id_stage.io.rd_w_ena))
+    commitDiffTest.io.wdata := RegNext(exe_stage.io.rd_data)
+    commitDiffTest.io.wdest := RegNext(RegNext(id_stage.io.rd_w_addr))
+  }
+  // CSR State
+  if (p.diffTest) {
+    val csrDiffTest = Module(new DifftestCSRState())
+    csrDiffTest.io.clock := this.clock
+    csrDiffTest.io.coreid := 0.U
+    csrDiffTest.io.mstatus := 0.U
+    csrDiffTest.io.mcause := 0.U
+    csrDiffTest.io.mepc := 0.U
+    csrDiffTest.io.sstatus := 0.U
+    csrDiffTest.io.scause := 0.U
+    csrDiffTest.io.sepc := 0.U
+    csrDiffTest.io.satp := 0.U
+    csrDiffTest.io.mip := 0.U
+    csrDiffTest.io.mie := 0.U
+    csrDiffTest.io.mscratch := 0.U
+    csrDiffTest.io.sscratch := 0.U
+    csrDiffTest.io.mideleg := 0.U
+    csrDiffTest.io.medeleg := 0.U
+    csrDiffTest.io.mtval:= 0.U
+    csrDiffTest.io.stval:= 0.U
+    csrDiffTest.io.mtvec := 0.U
+    csrDiffTest.io.stvec := 0.U
+    csrDiffTest.io.priviledgeMode := 0.U
+  }
+  // Trap
+  if (p.diffTest) {
+    val trapDIffTest = Module(new DifftestTrapEvent)
+    trapDIffTest.io.clock    := this.clock
+    trapDIffTest.io.coreid   := 0.U
+    trapDIffTest.io.valid    := RegNext(RegNext(io.inst === "h0000006b".U))
+    trapDIffTest.io.code     := 0.U // GoodTrap
+    trapDIffTest.io.pc       := RegNext(RegNext(if_stage.io.inst_adder, 0.U), 0.U)
+    trapDIffTest.io.cycleCnt := 0.U
+    trapDIffTest.io.instrCnt := 0.U
   }
 }
