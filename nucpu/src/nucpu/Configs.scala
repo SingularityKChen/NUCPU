@@ -20,6 +20,17 @@ class Configs(val diffTest: Boolean) {
   val pcStart = "h80000000"
 }
 
+class CacheConfigs(diffTest: Boolean) extends Configs(diffTest) {
+  val way = 4
+  /** The byte in one cache line*/
+  val lineByte = 16
+  /** The number of memory cells in one cache way*/
+  val set = 32
+  val offsetBit: Int = log2Ceil(lineByte)
+  val setBit: Int = log2Ceil(set)
+  val tagBit: Int = busWidth - setBit - offsetBit
+}
+
 object DecodeParams {
   val A1_X = "??"
   val A1_ZERO = "00"
