@@ -13,14 +13,13 @@ class SimTop()(implicit val p: Configs) extends Module {
   protected val nucpu: NUCPU = Module(new NUCPU())
   protected val mem: RAMHelper = Module(new RAMHelper())
   mem.io.clk := this.clock
-  // FIXME: correct the connections
   mem.io.en := !this.reset.asBool() && nucpu.io.instValid
-  mem.io.rIdx := nucpu.io.instAddr
+  mem.io.rIdx := (nucpu.io.instAddr - p.pcStart.U) >> 3
   mem.io.wIdx := DontCare
   mem.io.wen := DontCare
   mem.io.wdata := DontCare
   mem.io.wmask := DontCare
-  nucpu.io.inst := mem.io.rdata
+  nucpu.io.inst := Mux(nucpu.io.instAddr(2), mem.io.rdata(63, 32), mem.io.rdata(31, 0))
 
   io.uart.in.valid := false.B
   io.uart.out.valid := false.B

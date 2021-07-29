@@ -63,11 +63,6 @@ class NUCPUTest extends AnyFlatSpec with Matchers with ChiselScalatestTester {
 object Generator extends App {
   implicit val p: Configs = new Configs(diffTest = true)
   (new ChiselStage).run(Seq(
-    ChiselGeneratorAnnotation(() => new NUCPU()),
-    TargetDirAnnotation(directory = "test_run_dir/NUCPU")
-  ))
-
-  (new ChiselStage).run(Seq(
     ChiselGeneratorAnnotation(() => new SimTop()),
     TargetDirAnnotation(directory = "test_run_dir/NUCPU")
   ))

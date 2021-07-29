@@ -19,7 +19,5 @@ class EXEStage()(implicit val p: Configs) extends Module {
     s"b$A2_RS2".U -> io.rs2Data,
     s"b$A2_SIZE".U -> 4.U
   ))
-  protected val rdDataReg: UInt = RegInit(0.U(p.busWidth.W))
-  rdDataReg := alu.io.results
-  io.rdData := rdDataReg
+  io.rdData := alu.io.results
 }

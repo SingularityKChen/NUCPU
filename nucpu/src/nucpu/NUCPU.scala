@@ -48,21 +48,23 @@ class NUCPU()(implicit val p: Configs) extends Module {
   // Commit
   if (p.diffTest) {
     val commitDiffTest: DifftestInstrCommit = Module(new DifftestInstrCommit())
+    val instValidWire = ifStage.io.instEn && !this.reset.asBool() &&
+      (ifStage.io.curPC =/= p.pcStart.U) && (io.inst =/= 0.U)
+    val instValidReg = RegNext(instValidWire)
+    val curPCReg = RegNext(ifStage.io.curPC, 0.U)
     commitDiffTest.io.clock := this.clock
     commitDiffTest.io.coreid := 0.U
     commitDiffTest.io.index := 0.U
-    commitDiffTest.io.valid := RegNext(RegNext(ifStage.io.instEn && !this.reset.asBool(), false.B), false.B)
-    commitDiffTest.io.pc := RegNext(RegNext(ifStage.io.curPC, 0.U), 0.U)
-    commitDiffTest.io.instr := RegNext(RegNext(io.inst))
+    commitDiffTest.io.valid := instValidReg
+    commitDiffTest.io.pc := curPCReg
+    commitDiffTest.io.instr := RegNext(io.inst)
     commitDiffTest.io.skip := false.B
     commitDiffTest.io.isRVC := false.B
     commitDiffTest.io.scFailed := false.B
-    commitDiffTest.io.wen := RegNext(RegNext(idStage.io.rdWEn))
-    commitDiffTest.io.wdata := RegNext(exeStage.io.rdData)
-    commitDiffTest.io.wdest := RegNext(RegNext(idStage.io.rdWAddr))
-  }
+    commitDiffTest.io.wen := RegNext(idStage.io.rdWEn)
+    commitDiffTest.io.wdata := exeStage.io.rdData
+    commitDiffTest.io.wdest := RegNext(idStage.io.rdWAddr)
   // CSR State
-  if (p.diffTest) {
     val csrDiffTest = Module(new DifftestCSRState())
     csrDiffTest.io.clock := this.clock
     csrDiffTest.io.coreid := 0.U
@@ -84,16 +86,19 @@ class NUCPU()(implicit val p: Configs) extends Module {
     csrDiffTest.io.mtvec := 0.U
     csrDiffTest.io.stvec := 0.U
     csrDiffTest.io.priviledgeMode := 0.U
-  }
   // Trap
-  if (p.diffTest) {
     val trapDIffTest = Module(new DifftestTrapEvent)
+    val cycleCnt = RegInit(0.U(p.busWidth.W))
+    val instCnt = RegInit(0.U(p.busWidth.W))
+    val trapReg = RegNext(io.inst === "h0000006b".U, false.B)
+    cycleCnt := Mux(trapReg, 0.U, cycleCnt + 1.U)
+    instCnt := instCnt + instValidWire
     trapDIffTest.io.clock    := this.clock
     trapDIffTest.io.coreid   := 0.U
-    trapDIffTest.io.valid    := RegNext(RegNext(io.inst === "h0000006b".U))
+    trapDIffTest.io.valid    := trapReg
     trapDIffTest.io.code     := 0.U // GoodTrap
-    trapDIffTest.io.pc       := RegNext(RegNext(ifStage.io.curPC, 0.U), 0.U)
-    trapDIffTest.io.cycleCnt := 0.U
-    trapDIffTest.io.instrCnt := 0.U
+    trapDIffTest.io.pc       := curPCReg
+    trapDIffTest.io.cycleCnt := cycleCnt
+    trapDIffTest.io.instrCnt := instCnt
   }
 }

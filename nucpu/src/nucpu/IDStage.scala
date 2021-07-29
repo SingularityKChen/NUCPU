@@ -27,7 +27,7 @@ class IDStage()(implicit val p: Configs) extends Module {
   protected val imm10_5: UInt = Mux(instCtrlWires.immSel === s"b$IMM_U".U, 0.U, io.inst(30, 25))
   protected val imm4_1: UInt = Mux(instCtrlWires.immSel === BitPat("b00?"),
     io.inst(11, 8),
-    Mux(instCtrlWires.immSel === BitPat("b01?"), io.inst(24, 21), 0.U)
+    Mux(instCtrlWires.immSel === s"b$IMM_U".U, 0.U, io.inst(24, 21))
   )
   protected val imm0: UInt = Mux(instCtrlWires.immSel === s"b$IMM_I".U,
     io.inst(20),
