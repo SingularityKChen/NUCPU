@@ -13,12 +13,12 @@ import org.scalatest.matchers.should.Matchers
 
 import java.io.File
 import java.nio.file.{Files, Paths}
-import scala.math.pow
-import scala.util.Random
+import scala.util.control.Breaks.break
 
 class NUCPUTest extends AnyFlatSpec with Matchers with ChiselScalatestTester {
   implicit val p: Configs = new Configs(diffTest = false)
   protected val instructions: Instructions.type = Instructions
+  val timeoutCycle = 1000
   val binDir = "./AM/am-kernels/tests/cpu-tests/build/"
   val binFileNames: Seq[String] = getBinFilenames(new File(binDir)).map(x => x.getName)
   val testcaseNames: Seq[String] = binFileNames.map(x => x.stripSuffix("-riscv64-nemu.bin"))
@@ -49,57 +49,41 @@ class NUCPUTest extends AnyFlatSpec with Matchers with ChiselScalatestTester {
 
   behavior of "NUCPU"
 
-  it should s"cpu-test-${testcaseNames(2)}".replaceAll("-", "_") in {
-    test(new NUCPU()).withAnnotations(Seq(WriteVcdAnnotation, VerilatorBackendAnnotation)) { dut =>
-      val dutIO = dut.io
-      val clock = dut.clock
-      dut.reset.poke(true.B)
-      clock.step()
-      dut.reset.poke(false.B)
-      for (inst <- getInstFromBinFileName(binFileNames(2))) {
-        dutIO.inst.poke(inst.U)
+  for (idx <- testcaseNames.indices) {
+    it should s"cpu-test-${testcaseNames(idx)}".replaceAll("-", "_") in {
+      test(new NUCPU()).withAnnotations(Seq(WriteVcdAnnotation, VerilatorBackendAnnotation)) { dut =>
+        val instArray = getInstFromBinFileName(binFileNames(idx))
+        val dutIO = dut.io
+        val clock = dut.clock
+        dut.reset.poke(true.B)
         clock.step()
-      }
-    }
-  }
-
-  it should "pass addi instruction" in {
-    val opcode = "00100" + "11"
-    val func3 = "000"
-    val testCaseNum = 1000
-    test(new NUCPU()).withAnnotations(Seq(WriteVcdAnnotation, VerilatorBackendAnnotation)) { dut =>
-      val dutIO = dut.io
-      val clock = dut.clock
-      dut.reset.poke(true.B)
-      clock.step()
-      dut.reset.poke(false.B)
-      dutIO.inst.poke("h00100093".U)
-      clock.step()
-      dutIO.inst.poke("h00200093".U)
-      clock.step()
-      dutIO.inst.poke("h00108093".U)
-      clock.step()
-      println(s"string: ${instructions.ADDI.toString}")
-      // FIXME: use address to read the instruction instead
-      for (_ <- 0 until testCaseNum) {
-        while (!dutIO.instValid.peek().litToBoolean) {
+        dut.reset.poke(false.B)
+        var trap = false
+        var timeout = false
+        var curCycle = 0
+        while (!trap) {
+          while (!dutIO.instValid.peek().litToBoolean) {
+            clock.step()
+            curCycle += 1
+            timeout = curCycle > timeoutCycle
+            if (timeout) {
+              throw new TimeoutException("[ERROR] Timeout Now!")
+            }
+          }
+          val curPC = dutIO.instAddr.peek().litValue().toInt
+          val curInstIdx = (curPC - 2147483648L).toInt / 4
+          val curInst = instArray(curInstIdx)
+          trap = curInst == p.pcTrap.stripPrefix("h")
+          dutIO.inst.poke(curInst.U)
+          println(s"[INFO] PC 0x${curPC.toHexString}: $curInst")
           clock.step()
+          curCycle += 1
+          timeout = curCycle > timeoutCycle
+          if (timeout) {
+            throw new TimeoutException("[ERROR] Timeout Now! Never hit trap.")
+          }
         }
-        val immValue = Random.nextInt(pow(2, p.instImmW - 1).toInt).toBinaryString
-        var imm = ""
-        if (immValue.length > 6) {
-          imm = s"%0${p.instImmW - 6}d".format(immValue.take(immValue.length - 6).toInt) + immValue.takeRight(6)
-        } else {
-          imm = s"%0${p.instImmW}d".format(immValue.toInt)
-        }
-        val rs1 = s"%0${p.instRsW}d".format(Random.nextInt(pow(2, p.instRsW).toInt).toBinaryString.toInt)
-        val rd = s"%0${p.instRdW}d".format(Random.nextInt(pow(2, p.instRdW).toInt).toBinaryString.toInt)
-        val inst = "b" + imm + rs1 + func3 + rd + opcode
-        println(s"[INFO] Current instruction is $inst.")
-        dutIO.inst.poke(inst.U)
-        clock.step()
       }
-      clock.step()
     }
   }
 

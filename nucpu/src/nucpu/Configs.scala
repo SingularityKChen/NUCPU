@@ -18,6 +18,7 @@ class Configs(val diffTest: Boolean) {
   val regNum = 32
   // pc init value
   val pcStart = "h80000000"
+  val pcTrap = "h0000006f"
 }
 
 class CacheConfigs(diffTest: Boolean) extends Configs(diffTest) {

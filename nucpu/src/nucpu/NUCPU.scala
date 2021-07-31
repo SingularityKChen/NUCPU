@@ -89,7 +89,7 @@ class NUCPU()(implicit val p: Configs) extends Module {
     val trapDIffTest = Module(new DifftestTrapEvent)
     val cycleCnt = RegInit(0.U(p.busWidth.W))
     val instCnt = RegInit(0.U(p.busWidth.W))
-    val trapReg = RegNext(io.inst === "h0000006b".U, false.B)
+    val trapReg = RegNext(io.inst === p.pcTrap.U, false.B)
     cycleCnt := Mux(trapReg, 0.U, cycleCnt + 1.U)
     instCnt := instCnt + instValidWire
     trapDIffTest.io.clock    := this.clock
