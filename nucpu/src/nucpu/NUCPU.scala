@@ -48,8 +48,7 @@ class NUCPU()(implicit val p: Configs) extends Module {
   // Commit
   if (p.diffTest) {
     val commitDiffTest: DifftestInstrCommit = Module(new DifftestInstrCommit())
-    val instValidWire = ifStage.io.instEn && !this.reset.asBool() &&
-      (ifStage.io.curPC =/= p.pcStart.U) && (io.inst =/= 0.U)
+    val instValidWire = ifStage.io.instEn && !this.reset.asBool() && (io.inst =/= 0.U)
     val instValidReg = RegNext(instValidWire)
     val curPCReg = RegNext(ifStage.io.curPC, 0.U)
     commitDiffTest.io.clock := this.clock
@@ -62,7 +61,7 @@ class NUCPU()(implicit val p: Configs) extends Module {
     commitDiffTest.io.isRVC := false.B
     commitDiffTest.io.scFailed := false.B
     commitDiffTest.io.wen := RegNext(idStage.io.rdWEn)
-    commitDiffTest.io.wdata := exeStage.io.rdData
+    commitDiffTest.io.wdata := RegNext(exeStage.io.rdData)
     commitDiffTest.io.wdest := RegNext(idStage.io.rdWAddr)
   // CSR State
     val csrDiffTest = Module(new DifftestCSRState())

@@ -35,7 +35,7 @@ class Cache()(implicit val p: CacheConfigs) extends Module {
   val refillTag: UInt = io.memResp.bits.data(p.busWidth - 1, p.busWidth - p.tagBit)
   val refillData: UInt = io.memResp.bits.data(p.busWidth - p.tagBit - 1, 0)
   val (refillWayIdx, _) = Counter(io.memResp.valid && io.memReq.valid, p.way)
-  dataArray.write(cpuIndex, VecInit(Seq.fill(p.way)(refillTag)), Seq.tabulate(p.way)(refillWayIdx === _.U))
+  tagArray.write(cpuIndex, VecInit(Seq.fill(p.way)(refillTag)), Seq.tabulate(p.way)(refillWayIdx === _.U))
 }
 
 class CacheReq()(implicit val p: Configs) extends Bundle {

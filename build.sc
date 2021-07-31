@@ -12,7 +12,6 @@ import $file.dependencies.chisel3.build
 import $file.dependencies.firrtl.build
 import $file.dependencies.treadle.build
 import $file.dependencies.`chisel-testers2`.build
-import $file.dependencies.difftest.build
 import $file.dependencies.`api-config-chipsalliance`.`build-rules`.mill.build
 
 // Global Scala Version
