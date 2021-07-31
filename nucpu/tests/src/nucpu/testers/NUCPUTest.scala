@@ -13,7 +13,6 @@ import org.scalatest.matchers.should.Matchers
 
 import java.io.File
 import java.nio.file.{Files, Paths}
-import scala.util.control.Breaks.break
 
 class NUCPUTest extends AnyFlatSpec with Matchers with ChiselScalatestTester {
   implicit val p: Configs = new Configs(diffTest = false)
@@ -21,7 +20,7 @@ class NUCPUTest extends AnyFlatSpec with Matchers with ChiselScalatestTester {
   val timeoutCycle = 1000
   val binDir = "./AM/am-kernels/tests/cpu-tests/build/"
   val binFileNames: Seq[String] = getBinFilenames(new File(binDir)).map(x => x.getName)
-  val testcaseNames: Seq[String] = binFileNames.map(x => x.stripSuffix("-riscv64-nemu.bin"))
+  val testcaseNames: Seq[String] = binFileNames.map(x => x.stripSuffix("-riscv64-mycpu.bin"))
   testcaseNames.zipWithIndex.foreach({ case (str, i) => println(s"[INFO] Idx $i: test case name $str")})
 
   /**Return the bin files under current directory (not including the subdirectories.
