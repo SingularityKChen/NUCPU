@@ -38,12 +38,13 @@ class IDStage()(implicit val p: Configs) extends Module {
   io.alu1Sel := instCtrlWires.alu1Sel
   io.alu2Sel := instCtrlWires.alu2Sel
   io.jal := instCtrlWires.jal
+  io.jalr := instCtrlWires.jalr
   io.br := instCtrlWires.branch
   io.jumpPCVal := io.curPC + imm
   io.rs1REn := instCtrlWires.rxs1
   io.rs2REn := instCtrlWires.rxs2
   io.rs1RAddr := rs1
-  io.rs2RAddr := 0.U
+  io.rs2RAddr := rs2
   io.rdWEn := instCtrlWires.wxd
   //FIXME
   io.rdWAddr := rd

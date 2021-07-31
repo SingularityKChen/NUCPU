@@ -36,6 +36,7 @@ class IDStageIOs()(implicit val p: Configs) extends Bundle {
   val alu1Sel: UInt = Output(UInt(width = A1_X.length.W))
   val alu2Sel: UInt = Output(UInt(width = A2_X.length.W))
   val jal: Bool = Output(Bool())
+  val jalr: Bool = Output(Bool())
   val br: Bool = Output(Bool())
   /** The targeted PC address if branch is taken or jal*/
   val jumpPCVal: UInt = Output(UInt(p.busWidth.W))

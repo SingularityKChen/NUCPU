@@ -20,7 +20,7 @@ class NUCPU()(implicit val p: Configs) extends Module {
   idStage.io.inst := io.inst
   idStage.io.curPC := ifStage.io.curPC
   // id_stage -> if_stage
-  ifStage.io.nextPC := idStage.io.jumpPCVal
+  ifStage.io.nextPC := Mux(idStage.io.jalr, exeStage.io.rdData, idStage.io.jumpPCVal)
   // id_stage -> regfile
   regFile.io.rs1RAddr := idStage.io.rs1RAddr
   regFile.io.rs1REn := idStage.io.rs1REn
@@ -38,7 +38,7 @@ class NUCPU()(implicit val p: Configs) extends Module {
   // write back
   // exe_stage -> if_stage
   protected val brTaken: Bool = idStage.io.br & exeStage.io.rdData(0)
-  ifStage.io.jumpPC := idStage.io.jal | brTaken
+  ifStage.io.jumpPC := idStage.io.jal | brTaken | idStage.io.jalr
   // id_stage -> regfile
   regFile.io.wEn := idStage.io.rdWEn
   regFile.io.wAddr := idStage.io.rdWAddr
