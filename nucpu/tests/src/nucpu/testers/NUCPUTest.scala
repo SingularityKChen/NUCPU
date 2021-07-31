@@ -19,9 +19,10 @@ import scala.util.Random
 class NUCPUTest extends AnyFlatSpec with Matchers with ChiselScalatestTester {
   implicit val p: Configs = new Configs(diffTest = false)
   protected val instructions: Instructions.type = Instructions
-  val binDir = "/root/Projects/NUCPU/AM/am-kernels/tests/cpu-tests/build/"
+  val binDir = "./AM/am-kernels/tests/cpu-tests/build/"
   val binFileNames: Seq[String] = getBinFilenames(new File(binDir)).map(x => x.getName)
   val testcaseNames: Seq[String] = binFileNames.map(x => x.stripSuffix("-riscv64-nemu.bin"))
+  testcaseNames.zipWithIndex.foreach({ case (str, i) => println(s"[INFO] Idx $i: test case name $str")})
 
   /**Return the bin files under current directory (not including the subdirectories.
    * @param dir: the directory to find the bin files.*/
@@ -48,14 +49,14 @@ class NUCPUTest extends AnyFlatSpec with Matchers with ChiselScalatestTester {
 
   behavior of "NUCPU"
 
-  it should s"cpu-test-${testcaseNames.head}".replaceAll("-", "_") in {
+  it should s"cpu-test-${testcaseNames(2)}".replaceAll("-", "_") in {
     test(new NUCPU()).withAnnotations(Seq(WriteVcdAnnotation, VerilatorBackendAnnotation)) { dut =>
       val dutIO = dut.io
       val clock = dut.clock
       dut.reset.poke(true.B)
       clock.step()
       dut.reset.poke(false.B)
-      for (inst <- getInstFromBinFileName(binFileNames.head)) {
+      for (inst <- getInstFromBinFileName(binFileNames(2))) {
         dutIO.inst.poke(inst.U)
         clock.step()
       }
