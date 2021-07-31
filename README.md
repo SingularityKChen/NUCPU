@@ -13,11 +13,17 @@ mill mill.bsp.BSP/install
 ```
 then open by Intellij IDEA.
 
-### CPU-Test
+### CPU-Test and AM-Test
 
 We wrote several Scala functions to read the binary file as the sequencer of CPU-Test. To execute the Chisel tests or DiffTest Framework, you need to build the binary files firstly:
 ```bash
 cd ./AM/am-kernels/tests/cpu-tests
+make ARCH=riscv64-mycpu
+```
+
+Also, the AM Test:
+```bash
+cd ./AM/am-kernels/tests/am-tests
 make ARCH=riscv64-mycpu
 ```
 

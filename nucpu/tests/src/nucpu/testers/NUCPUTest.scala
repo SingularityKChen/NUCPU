@@ -39,51 +39,64 @@ class NUCPUTest extends AnyFlatSpec with Matchers with ChiselScalatestTester {
     for (idx <- 0 until hexArray.length / 4) {
       instArray(idx) = hexArray(idx * 4 + 3) + hexArray(idx * 4 + 2) + hexArray(idx * 4 + 1) + hexArray(idx * 4)
     }
-    instArray
+    instArray.map(x => "h" + x)
   }
 
   def getInstFromBinFileName(filename: String): Array[String] = {
-    getInstFromHexArray(getHexArray(binDir + filename)).map(x => "h" + x)
+    getInstFromHexArray(getHexArray(binDir + filename))
   }
 
-  behavior of "NUCPU"
-
-  for (idx <- testcaseNames.indices) {
-    it should s"cpu-test-${testcaseNames(idx)}".replaceAll("-", "_") in {
-      test(new NUCPU()).withAnnotations(Seq(WriteVcdAnnotation, VerilatorBackendAnnotation)) { dut =>
-        val instArray = getInstFromBinFileName(binFileNames(idx))
-        val dutIO = dut.io
-        val clock = dut.clock
-        dut.reset.poke(true.B)
-        clock.step()
-        dut.reset.poke(false.B)
-        var trap = false
-        var timeout = false
-        var curCycle = 0
-        while (!trap) {
-          while (!dutIO.instValid.peek().litToBoolean) {
-            clock.step()
-            curCycle += 1
-            timeout = curCycle > timeoutCycle
-            if (timeout) {
-              throw new TimeoutException("[ERROR] Timeout Now!")
-            }
-          }
-          val curPC = dutIO.instAddr.peek().litValue().toInt
-          val curInstIdx = (curPC - 2147483648L).toInt / 4
-          val curInst = instArray(curInstIdx)
-          trap = curInst == p.pcTrap.stripPrefix("h")
-          dutIO.inst.poke(curInst.U)
-          println(s"[INFO] PC 0x${curPC.toHexString}: $curInst")
+  def runTest(instArray: Array[String]): TestResult = {
+    test(new NUCPU()).withAnnotations(Seq(WriteVcdAnnotation, VerilatorBackendAnnotation)) { dut =>
+      val dutIO = dut.io
+      val clock = dut.clock
+      dut.reset.poke(true.B)
+      clock.step()
+      dut.reset.poke(false.B)
+      var trap = false
+      var timeout = false
+      var curCycle = 0
+      while (!trap) {
+        while (!dutIO.instValid.peek().litToBoolean) {
           clock.step()
           curCycle += 1
           timeout = curCycle > timeoutCycle
           if (timeout) {
-            throw new TimeoutException("[ERROR] Timeout Now! Never hit trap.")
+            throw new TimeoutException("[ERROR] Timeout Now!")
           }
+        }
+        val curPC = dutIO.instAddr.peek().litValue().toInt
+        val curInstIdx = (curPC - 2147483648L).toInt / 4
+        val curInst = instArray(curInstIdx)
+        trap = curInst == p.pcTrap.stripPrefix("h")
+        dutIO.inst.poke(curInst.U)
+        println(s"[INFO] PC 0x${curPC.toHexString}: $curInst")
+        clock.step()
+        curCycle += 1
+        timeout = curCycle > timeoutCycle
+        if (timeout) {
+          throw new TimeoutException("[ERROR] Timeout Now! Never hit trap.")
         }
       }
     }
+  }
+
+  behavior of "NUCPU"
+
+  // CPU TEST
+  for (idx <- testcaseNames.indices) {
+    it should s"cpu-test-${testcaseNames(idx)}".replaceAll("-", "_") in {
+      val instArray = getInstFromBinFileName(binFileNames(idx))
+      runTest(instArray)
+    }
+  }
+
+  // RISCV-AM TEST
+  it should "riscv_test" in {
+    val instArray = getInstFromHexArray(getHexArray(
+      "./AM/am-kernels/tests/am-tests/build/amtest-riscv64-mycpu")
+    )
+    runTest(instArray)
   }
 
 }
