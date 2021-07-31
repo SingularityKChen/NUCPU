@@ -11,13 +11,56 @@ import nucpu._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
+import java.io.File
+import java.nio.file.{Files, Paths}
 import scala.math.pow
 import scala.util.Random
 
 class NUCPUTest extends AnyFlatSpec with Matchers with ChiselScalatestTester {
   implicit val p: Configs = new Configs(diffTest = false)
   protected val instructions: Instructions.type = Instructions
+  val binDir = "/root/Projects/NUCPU/AM/am-kernels/tests/cpu-tests/build/"
+  val binFileNames: Seq[String] = getBinFilenames(new File(binDir)).map(x => x.getName)
+  val testcaseNames: Seq[String] = binFileNames.map(x => x.stripSuffix("-riscv64-nemu.bin"))
+
+  /**Return the bin files under current directory (not including the subdirectories.
+   * @param dir: the directory to find the bin files.*/
+  def getBinFilenames(dir: File): Seq[File] = {
+    dir.listFiles.filter(_.isFile).filter(_.getName.matches(".*bin")).toIterator.toSeq
+  }
+
+  /**Return the hex string of the bin file but the order is the original order.*/
+  def getHexArray(filename: String): Array[String] = {
+    Files.readAllBytes(Paths.get(filename)).map(x => ("00" + x.toHexString).takeRight(2))
+  }
+
+  def getInstFromHexArray(hexArray: Array[String]): Array[String] = {
+    val instArray = new Array[String](hexArray.length / 4)
+    for (idx <- 0 until hexArray.length / 4) {
+      instArray(idx) = hexArray(idx * 4 + 3) + hexArray(idx * 4 + 2) + hexArray(idx * 4 + 1) + hexArray(idx * 4)
+    }
+    instArray
+  }
+
+  def getInstFromBinFileName(filename: String): Array[String] = {
+    getInstFromHexArray(getHexArray(binDir + filename)).map(x => "h" + x)
+  }
+
   behavior of "NUCPU"
+
+  it should s"cpu-test-${testcaseNames.head}".replaceAll("-", "_") in {
+    test(new NUCPU()).withAnnotations(Seq(WriteVcdAnnotation, VerilatorBackendAnnotation)) { dut =>
+      val dutIO = dut.io
+      val clock = dut.clock
+      dut.reset.poke(true.B)
+      clock.step()
+      dut.reset.poke(false.B)
+      for (inst <- getInstFromBinFileName(binFileNames.head)) {
+        dutIO.inst.poke(inst.U)
+        clock.step()
+      }
+    }
+  }
 
   it should "pass addi instruction" in {
     val opcode = "00100" + "11"
@@ -58,6 +101,7 @@ class NUCPUTest extends AnyFlatSpec with Matchers with ChiselScalatestTester {
       clock.step()
     }
   }
+
 }
 
 object Generator extends App {
