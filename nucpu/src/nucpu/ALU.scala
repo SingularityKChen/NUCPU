@@ -27,8 +27,8 @@ class ALU()(implicit val p: Configs) extends Module {
   io.results := MuxLookup(key = io.func, default = 0.U, mapping = Array(
       FN_ADD -> addWire,
       FN_SL -> slWire,
-      FN_SEQ -> !seqWire,
-      FN_SNE -> seqWire,
+      FN_SEQ -> seqWire,
+      FN_SNE -> !seqWire,
       FN_XOR -> xorWire,
       FN_SR -> srWire,
       FN_OR -> orWire,
