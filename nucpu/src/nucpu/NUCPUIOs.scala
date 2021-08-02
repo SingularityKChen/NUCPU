@@ -40,6 +40,9 @@ class IDStageIOs()(implicit val p: Configs) extends Bundle {
   val br: Bool = Output(Bool())
   /** The targeted PC address if branch is taken or jal*/
   val jumpPCVal: UInt = Output(UInt(p.busWidth.W))
+  val mem: Bool = Output(Bool())
+  val memCmd: UInt = Output(UInt(M_X.length.W))
+  val func3: UInt = Output(UInt(3.W))
 }
 
 class EXEStageIOs()(implicit val p: Configs) extends Bundle {
@@ -110,4 +113,10 @@ class NUCPUIOs()(implicit val p: Configs) extends Bundle {
   val inst: UInt = Input(UInt(p.instW.W))
   val instAddr: UInt = Output(UInt(p.busWidth.W))
   val instValid: Bool = Output(Bool())
+  val memAddr: UInt = Output(UInt(p.busWidth.W))
+  val memRData: UInt = Input(UInt(p.busWidth.W))
+  val memDoWrite: Bool = Output(Bool())
+  val memWData: UInt = Output(UInt(p.busWidth.W))
+  val memMask: UInt = Output(UInt(p.busWidth.W))
+  val memValid: Bool = Output(Bool())
 }

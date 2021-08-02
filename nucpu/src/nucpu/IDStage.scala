@@ -49,4 +49,8 @@ class IDStage()(implicit val p: Configs) extends Module {
   //FIXME
   io.rdWAddr := rd
   io.immData := imm
+  // Memory related
+  io.mem := instCtrlWires.mem
+  io.memCmd := instCtrlWires.mem_cmd
+  io.func3 := io.inst(14, 12)
 }

@@ -94,7 +94,7 @@ class NUCPUTest extends AnyFlatSpec with Matchers with ChiselScalatestTester {
   // RISCV-AM TEST
   it should "riscv_test" in {
     val instArray = getInstFromHexArray(getHexArray(
-      "./AM/am-kernels/tests/am-tests/build/amtest-riscv64-mycpu")
+      "./AM/am-kernels/tests/am-tests/build/amtest-riscv64-mycpu.bin")
     )
     runTest(instArray)
   }

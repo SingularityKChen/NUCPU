@@ -3,6 +3,7 @@ package nucpu
 import chisel3._
 import chisel3.util._
 import difftest._
+import nucpu.DecodeParams.M_XWR
 
 class NUCPU()(implicit val p: Configs) extends Module {
   val io: NUCPUIOs = IO(new NUCPUIOs())
@@ -35,6 +36,12 @@ class NUCPU()(implicit val p: Configs) extends Module {
   exeStage.io.aluFn := idStage.io.aluFn
   exeStage.io.alu1Sel := idStage.io.alu1Sel
   exeStage.io.alu2Sel := idStage.io.alu2Sel
+  // memory FIXME
+  io.memWData := regFile.io.rs2RData
+  io.memMask := idStage.io.func3(2, 0)
+  io.memValid := idStage.io.mem
+  io.memDoWrite := idStage.io.memCmd === ("b" + M_XWR).U
+  io.memAddr := exeStage.io.rdData
   // write back
   // exe_stage -> if_stage
   protected val brTaken: Bool = idStage.io.br & exeStage.io.rdData(0)
@@ -43,10 +50,29 @@ class NUCPU()(implicit val p: Configs) extends Module {
   regFile.io.wEn := idStage.io.rdWEn
   regFile.io.wAddr := idStage.io.rdWAddr
   // exe_stage -> regfile
-  regFile.io.wData := exeStage.io.rdData
+  protected val lbWire: UInt = Cat(
+    Fill(p.busWidth - 8, Mux(idStage.io.func3(2), 0.U, io.memRData(7))),
+    io.memRData(7, 0)
+  )
+  protected val lhWire: UInt = Cat(
+    Fill(p.busWidth - 16, Mux(idStage.io.func3(2), 0.U, io.memRData(15))),
+    io.memRData(15, 0)
+  )
+  protected val lwWire: UInt = Cat(
+    Fill(p.busWidth - 32, Mux(idStage.io.func3(2), 0.U, io.memRData(31))),
+    io.memRData(31, 0)
+  )
+  protected val ldWire: UInt = io.memRData
+  protected val loadData: UInt = MuxLookup(idStage.io.func3(1, 0), io.memRData, Array(
+    0.U -> lbWire,
+    1.U -> lhWire,
+    2.U -> lwWire,
+    3.U -> ldWire,
+  ))
+  regFile.io.wData := Mux(idStage.io.mem, loadData, exeStage.io.rdData)
   // For DiffTest
-  // Commit
   if (p.diffTest) {
+    // Commit
     val commitDiffTest: DifftestInstrCommit = Module(new DifftestInstrCommit())
     val instValidWire = ifStage.io.instEn && !this.reset.asBool() && (io.inst =/= 0.U)
     val instValidReg = RegNext(instValidWire)
@@ -61,9 +87,9 @@ class NUCPU()(implicit val p: Configs) extends Module {
     commitDiffTest.io.isRVC := false.B
     commitDiffTest.io.scFailed := false.B
     commitDiffTest.io.wen := RegNext(idStage.io.rdWEn)
-    commitDiffTest.io.wdata := RegNext(exeStage.io.rdData)
+    commitDiffTest.io.wdata := RegNext(Mux(idStage.io.mem, loadData, exeStage.io.rdData))
     commitDiffTest.io.wdest := RegNext(idStage.io.rdWAddr)
-  // CSR State
+    // CSR State
     val csrDiffTest = Module(new DifftestCSRState())
     csrDiffTest.io.clock := this.clock
     csrDiffTest.io.coreid := 0.U
@@ -85,19 +111,28 @@ class NUCPU()(implicit val p: Configs) extends Module {
     csrDiffTest.io.mtvec := 0.U
     csrDiffTest.io.stvec := 0.U
     csrDiffTest.io.priviledgeMode := 0.U
-  // Trap
-    val trapDIffTest = Module(new DifftestTrapEvent)
+    // Trap
+    val trapDiffTest = Module(new DifftestTrapEvent)
     val cycleCnt = RegInit(0.U(p.busWidth.W))
     val instCnt = RegInit(0.U(p.busWidth.W))
     val trapReg = RegNext(io.inst === p.pcTrap.U, false.B)
     cycleCnt := Mux(trapReg, 0.U, cycleCnt + 1.U)
     instCnt := instCnt + instValidWire
-    trapDIffTest.io.clock    := this.clock
-    trapDIffTest.io.coreid   := 0.U
-    trapDIffTest.io.valid    := trapReg
-    trapDIffTest.io.code     := 0.U // GoodTrap
-    trapDIffTest.io.pc       := curPCReg
-    trapDIffTest.io.cycleCnt := cycleCnt
-    trapDIffTest.io.instrCnt := instCnt
+    trapDiffTest.io.clock    := this.clock
+    trapDiffTest.io.coreid   := 0.U
+    trapDiffTest.io.valid    := trapReg
+    trapDiffTest.io.code     := 0.U // GoodTrap
+    trapDiffTest.io.pc       := curPCReg
+    trapDiffTest.io.cycleCnt := cycleCnt
+    trapDiffTest.io.instrCnt := instCnt
+    // Load
+    val loadDiffTest = Module(new DifftestLoadEvent)
+    loadDiffTest.io.clock := this.clock
+    loadDiffTest.io.coreid := 0.U
+    loadDiffTest.io.index := 0.U
+    loadDiffTest.io.valid := RegNext((idStage.io.memCmd === ("b" + M_XWR).U) && idStage.io.mem)
+    loadDiffTest.io.paddr := RegNext(exeStage.io.rdData)
+    loadDiffTest.io.opType := RegNext(idStage.io.func3)
+    loadDiffTest.io.fuType := RegNext(Mux(loadDiffTest.io.valid, "h0c".U, 0.U))
   }
 }
