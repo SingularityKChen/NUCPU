@@ -3,13 +3,14 @@ package nucpu
 import chisel3._
 import chisel3.util._
 import difftest._
-import nucpu.DecodeParams.M_XWR
+import nucpu.DecodeParams.{M_XRD, M_XWR}
 
 class NUCPU()(implicit val p: Configs) extends Module {
   val io: NUCPUIOs = IO(new NUCPUIOs())
   // TODO: if_stage.reset, to clear PC
   protected val ifStage: IFStage = Module(new IFStage())
   protected val idStage: IDStage = Module(new IDStage())
+  protected val memStage: MemStage = Module(new MemStage())
   protected val exeStage: EXEStage = Module(new EXEStage())
   protected val regFile: RegFile = Module(new RegFile())
   // inst fetch
@@ -36,12 +37,19 @@ class NUCPU()(implicit val p: Configs) extends Module {
   exeStage.io.aluFn := idStage.io.aluFn
   exeStage.io.alu1Sel := idStage.io.alu1Sel
   exeStage.io.alu2Sel := idStage.io.alu2Sel
-  // memory FIXME
-  io.memWData := regFile.io.rs2RData
-  io.memMask := idStage.io.func3(2, 0)
-  io.memValid := idStage.io.mem
-  io.memDoWrite := idStage.io.memCmd === ("b" + M_XWR).U
-  io.memAddr := exeStage.io.rdData
+  // memory stage
+  memStage.io.exeData := regFile.io.rs2RData
+  memStage.io.exeAddr := exeStage.io.rdData
+  memStage.io.func3 := idStage.io.func3
+  memStage.io.memCmd := idStage.io.memCmd
+  memStage.io.exeMemValid := idStage.io.mem
+  // cpu mem_stage -> memory
+  io.memAddr := memStage.io.memAddr
+  memStage.io.memRData := io.memRData
+  io.memDoWrite := memStage.io.memDoWrite
+  io.memWData := memStage.io.memWData
+  io.memMask := memStage.io.memMask
+  io.memValid := memStage.io.memValid
   // write back
   // exe_stage -> if_stage
   protected val brTaken: Bool = idStage.io.br & exeStage.io.rdData(0)
@@ -50,26 +58,7 @@ class NUCPU()(implicit val p: Configs) extends Module {
   regFile.io.wEn := idStage.io.rdWEn
   regFile.io.wAddr := idStage.io.rdWAddr
   // exe_stage -> regfile
-  protected val lbWire: UInt = Cat(
-    Fill(p.busWidth - 8, Mux(idStage.io.func3(2), 0.U, io.memRData(7))),
-    io.memRData(7, 0)
-  )
-  protected val lhWire: UInt = Cat(
-    Fill(p.busWidth - 16, Mux(idStage.io.func3(2), 0.U, io.memRData(15))),
-    io.memRData(15, 0)
-  )
-  protected val lwWire: UInt = Cat(
-    Fill(p.busWidth - 32, Mux(idStage.io.func3(2), 0.U, io.memRData(31))),
-    io.memRData(31, 0)
-  )
-  protected val ldWire: UInt = io.memRData
-  protected val loadData: UInt = MuxLookup(idStage.io.func3(1, 0), io.memRData, Array(
-    0.U -> lbWire,
-    1.U -> lhWire,
-    2.U -> lwWire,
-    3.U -> ldWire,
-  ))
-  regFile.io.wData := Mux(idStage.io.mem, loadData, exeStage.io.rdData)
+  regFile.io.wData := Mux(idStage.io.mem, memStage.io.wbData, exeStage.io.rdData)
   // For DiffTest
   if (p.diffTest) {
     // Commit
@@ -87,7 +76,7 @@ class NUCPU()(implicit val p: Configs) extends Module {
     commitDiffTest.io.isRVC := false.B
     commitDiffTest.io.scFailed := false.B
     commitDiffTest.io.wen := RegNext(idStage.io.rdWEn)
-    commitDiffTest.io.wdata := RegNext(Mux(idStage.io.mem, loadData, exeStage.io.rdData))
+    commitDiffTest.io.wdata := RegNext(Mux(idStage.io.mem, memStage.io.exeData, exeStage.io.rdData))
     commitDiffTest.io.wdest := RegNext(idStage.io.rdWAddr)
     // CSR State
     val csrDiffTest = Module(new DifftestCSRState())
@@ -130,9 +119,9 @@ class NUCPU()(implicit val p: Configs) extends Module {
     loadDiffTest.io.clock := this.clock
     loadDiffTest.io.coreid := 0.U
     loadDiffTest.io.index := 0.U
-    loadDiffTest.io.valid := RegNext((idStage.io.memCmd === ("b" + M_XWR).U) && idStage.io.mem)
-    loadDiffTest.io.paddr := RegNext(exeStage.io.rdData)
+    loadDiffTest.io.valid := RegNext((idStage.io.memCmd === ("b" + M_XRD).U) && memStage.io.memValid)
+    loadDiffTest.io.paddr := RegNext(memStage.io.memAddr)
     loadDiffTest.io.opType := RegNext(idStage.io.func3)
-    loadDiffTest.io.fuType := RegNext(Mux(loadDiffTest.io.valid, "h0c".U, 0.U))
+    loadDiffTest.io.fuType := Mux(loadDiffTest.io.valid, "h0c".U, 0.U)
   }
 }
