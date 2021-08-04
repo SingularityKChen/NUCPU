@@ -123,5 +123,14 @@ class NUCPU()(implicit val p: Configs) extends Module {
     loadDiffTest.io.paddr := RegNext(memStage.io.memAddr)
     loadDiffTest.io.opType := RegNext(idStage.io.func3)
     loadDiffTest.io.fuType := Mux(loadDiffTest.io.valid, "h0c".U, 0.U)
+    // Store
+    val storeDiffTest = Module(new DifftestStoreEvent)
+    storeDiffTest.io.clock := this.clock
+    storeDiffTest.io.coreid := 0.U
+    storeDiffTest.io.index := 0.U
+    storeDiffTest.io.valid := RegNext(memStage.io.memDoWrite && memStage.io.memValid)
+    storeDiffTest.io.storeAddr := RegNext(memStage.io.memAddr)
+    storeDiffTest.io.storeData := RegNext(memStage.io.memWData)
+    storeDiffTest.io.storeMask := RegNext(Cat(Range(0, 8).map(x => memStage.io.memMask(8*x))))
   }
 }
