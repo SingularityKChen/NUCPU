@@ -43,10 +43,13 @@ class IDStageIOs()(implicit val p: Configs) extends Bundle {
   val mem: Bool = Output(Bool())
   val memCmd: UInt = Output(UInt(M_X.length.W))
   val func3: UInt = Output(UInt(3.W))
+  // False for taking only 32 bit and signed extend
+  val aluDW: Bool = Output(Bool())
 }
 
 class EXEStageIOs()(implicit val p: Configs) extends Bundle {
   val aluFn: UInt = Input(UInt(FN_X.length.W))
+  val aluDW: Bool = Input(Bool())
   val pc: UInt = Input(UInt(p.busWidth.W))
   val imm: UInt = Input(UInt(p.busWidth.W))
   val rs1Data: UInt = Input(UInt(p.busWidth.W))
@@ -74,6 +77,7 @@ class InstCtrlIOs extends Bundle {
   val alu1Sel: UInt = Bits(width = A1_X.length.W)
   /** Select signal for imm value*/
   val immSel: UInt = Bits(width = IMM_X.length.W)
+  /** Whether valid data width in ALU is 64 bit. False for only 32 bit*/
   val aluDW: Bool = Bool()
   /** ALU function code */
   val aluFn: UInt = Bits(width = FN_X.length.W)

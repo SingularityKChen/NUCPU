@@ -34,6 +34,7 @@ class NUCPU()(implicit val p: Configs) extends Module {
   exeStage.io.rs2Data := regFile.io.rs2RData
   // id_stage -> exe_stage
   exeStage.io.imm := idStage.io.immData
+  exeStage.io.aluDW := idStage.io.aluDW
   exeStage.io.aluFn := idStage.io.aluFn
   exeStage.io.alu1Sel := idStage.io.alu1Sel
   exeStage.io.alu2Sel := idStage.io.alu2Sel
@@ -114,6 +115,11 @@ class NUCPU()(implicit val p: Configs) extends Module {
     trapDiffTest.io.pc       := curPCReg
     trapDiffTest.io.cycleCnt := cycleCnt
     trapDiffTest.io.instrCnt := instCnt
+    // Float point
+    val fpRegDiffTest = Module(new DifftestArchFpRegState)
+    fpRegDiffTest.io.clock := this.clock
+    fpRegDiffTest.io.coreid := 0.U
+    fpRegDiffTest.io.fpr.foreach(x => x := 0.U)
     // Load
     val loadDiffTest = Module(new DifftestLoadEvent)
     loadDiffTest.io.clock := this.clock

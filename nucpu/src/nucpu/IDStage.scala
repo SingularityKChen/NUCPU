@@ -8,7 +8,6 @@ import nucpu.DecodeParams._
 class IDStage()(implicit val p: Configs) extends Module {
   val io: IDStageIOs = IO(new IDStageIOs())
   override val desiredName = "id_stage"
-  // TODO: add more
   protected val rd: UInt = io.inst(11, 7)
   protected val rs1: UInt = io.inst(19, 15)
   protected val rs2: UInt = io.inst(24, 20)
@@ -46,11 +45,11 @@ class IDStage()(implicit val p: Configs) extends Module {
   io.rs1RAddr := rs1
   io.rs2RAddr := rs2
   io.rdWEn := instCtrlWires.wxd
-  //FIXME
   io.rdWAddr := rd
   io.immData := imm
   // Memory related
   io.mem := instCtrlWires.mem
   io.memCmd := instCtrlWires.mem_cmd
   io.func3 := io.inst(14, 12)
+  io.aluDW := instCtrlWires.aluDW
 }
