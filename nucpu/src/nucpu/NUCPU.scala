@@ -77,7 +77,7 @@ class NUCPU()(implicit val p: Configs) extends Module {
     commitDiffTest.io.isRVC := false.B
     commitDiffTest.io.scFailed := false.B
     commitDiffTest.io.wen := RegNext(idStage.io.rdWEn)
-    commitDiffTest.io.wdata := RegNext(Mux(idStage.io.mem, memStage.io.exeData, exeStage.io.rdData))
+    commitDiffTest.io.wdata := RegNext(Mux(io.memValid && !io.memDoWrite, memStage.io.wbData, exeStage.io.rdData))
     commitDiffTest.io.wdest := RegNext(idStage.io.rdWAddr)
     // CSR State
     val csrDiffTest = Module(new DifftestCSRState())
