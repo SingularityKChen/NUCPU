@@ -17,7 +17,7 @@ import java.nio.file.{Files, Paths}
 class NUCPUTest extends AnyFlatSpec with Matchers with ChiselScalatestTester {
   implicit val p: Configs = new Configs(diffTest = false)
   protected val instructions: Instructions.type = Instructions
-  val timeoutCycle = 1000
+  val timeoutCycle = 50000
   val binDir = "./AM/am-kernels/tests/cpu-tests/build/"
   val binFileNames: Seq[String] = getBinFilenames(new File(binDir)).map(x => x.getName)
   val testcaseNames: Seq[String] = binFileNames.map(x => x.stripSuffix("-riscv64-mycpu.bin"))
@@ -48,6 +48,7 @@ class NUCPUTest extends AnyFlatSpec with Matchers with ChiselScalatestTester {
 
   def runTest(instArray: Array[String]): TestResult = {
     test(new NUCPU()).withAnnotations(Seq(WriteVcdAnnotation, VerilatorBackendAnnotation)) { dut =>
+      val dataArray = new Array[String](10000) // 64 Bit
       val dutIO = dut.io
       val clock = dut.clock
       dut.reset.poke(true.B)
@@ -56,28 +57,58 @@ class NUCPUTest extends AnyFlatSpec with Matchers with ChiselScalatestTester {
       var trap = false
       var timeout = false
       var curCycle = 0
-      while (!trap) {
-        while (!dutIO.instValid.peek().litToBoolean) {
+      fork {
+        while (!trap) {
+          while (!dutIO.instValid.peek().litToBoolean) {
+            clock.step()
+            curCycle += 1
+            timeout = curCycle > timeoutCycle
+            if (timeout) {
+              throw new TimeoutException("[ERROR] Timeout Now!")
+            }
+          }
+          val curPC = dutIO.instAddr.peek().litValue().toInt
+          val curInstIdx = (curPC - 2147483648L).toInt / 4
+          val curInst = instArray(curInstIdx)
+          trap = curInst == p.instTrap.stripPrefix("h")
+          dutIO.inst.poke(curInst.U)
+          println(s"[INFO] PC 0x${curPC.toHexString}: 0x$curInst")
           clock.step()
           curCycle += 1
           timeout = curCycle > timeoutCycle
           if (timeout) {
-            throw new TimeoutException("[ERROR] Timeout Now!")
+            throw new TimeoutException("[ERROR] Timeout Now! Never hit trap.")
           }
         }
-        val curPC = dutIO.instAddr.peek().litValue().toInt
-        val curInstIdx = (curPC - 2147483648L).toInt / 4
-        val curInst = instArray(curInstIdx)
-        trap = curInst == p.pcTrap.stripPrefix("h")
-        dutIO.inst.poke(curInst.U)
-        println(s"[INFO] PC 0x${curPC.toHexString}: $curInst")
-        clock.step()
-        curCycle += 1
-        timeout = curCycle > timeoutCycle
-        if (timeout) {
-          throw new TimeoutException("[ERROR] Timeout Now! Never hit trap.")
+      } .fork.withRegion(Monitor) {
+        while (!trap) {
+          while (!dutIO.memValid.peek().litToBoolean) {
+            clock.step()
+          }
+          val curAddr = dutIO.memAddr.peek().litValue().toInt
+          val curAddrIdx = (curAddr - 2147483648L).toInt / 4
+          if(curAddrIdx < instArray.length) {
+            val readData = instArray(curAddrIdx)
+            dutIO.memRData.poke(readData.U)
+            println(s"[INFO] Read 0x$readData from 0x${curAddr.toHexString}")
+          } else {
+            val dataIdx = (curAddrIdx - instArray.length) / 2
+            require(dataIdx < dataArray.length,
+              s"[ERROR] Memory index should less than ${dataArray.length} but $dataIdx")
+            if (dutIO.memDoWrite.peek().litToBoolean) {
+              val writeData = "h" + dutIO.memWData.peek().litValue().toString(16)
+              dataArray(dataIdx) = writeData
+              println(s"[INFO] Write 0x$writeData into 0x${curAddr.toHexString}")
+            } else {
+              val readData = dataArray(dataIdx)
+              dutIO.memRData.poke(readData.U)
+              println(s"[INFO] Read 0x$readData from 0x${curAddr.toHexString}")
+            }
+          }
+          clock.step()
         }
-      }
+      } .joinAndStep(clock)
+
     }
   }
 
