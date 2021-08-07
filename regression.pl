@@ -93,11 +93,9 @@ sub run_test_case {
     my $test_name = $spl2[-1];
     printf("[INFO] Current Test is $test_name\n");
     my $test_result = system("$emu_file -i $test_file  --dump-wave -b 0 -e 2000000 > $regression_log_dir/$test_name.log");
-    if ($test_result == 0) {
-        system("mv $waveform_filename $regression_log_dir/$test_name.vcd");
-    }
-    else {
+    if ($test_result != 0) {
         printf("[ERROR] Test $test_file failed!\n");
     }
+    system("mv $waveform_filename $regression_log_dir/$test_name.vcd");
     return($test_result);
 }
