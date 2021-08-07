@@ -24,10 +24,10 @@
 	branch = xiangshan
 [submodule "AM/am-kernels"]
 	path = AM/am-kernels
-	url = https://github.com/NJU-ProjectN/am-kernels.git
+	url = git@github.com:NJU-ProjectN/am-kernels.git
 [submodule "AM/abstract-machine"]
 	path = AM/abstract-machine
-	url = https://github.com/NJU-ProjectN/abstract-machine.git
+	url = git@github.com:SingularityKChen/abstract-machine.git
 	branch = ysyx2021
 [submodule "NEMU"]
 	path = NEMU
