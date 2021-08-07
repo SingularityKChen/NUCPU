@@ -160,6 +160,18 @@ object DecodeParams {
     SLLI->  Seq(Y,N,N,N,N,N,N,Y,N,A2_IMM, A1_RS1, IMM_I, DW_XPR,FN_SL,  N,M_X,   N,N,N,N,N,N,Y,CSR_N,N,N,N,N),
     SRLI->  Seq(Y,N,N,N,N,N,N,Y,N,A2_IMM, A1_RS1, IMM_I, DW_XPR,FN_SR,  N,M_X,   N,N,N,N,N,N,Y,CSR_N,N,N,N,N),
     SRAI->  Seq(Y,N,N,N,N,N,N,Y,N,A2_IMM, A1_RS1, IMM_I, DW_XPR,FN_SRA, N,M_X,   N,N,N,N,N,N,Y,CSR_N,N,N,N,N),
+    // System
+    ECALL-> Seq(Y,N,N,N,N,N,N,X,N,A2_X,   A1_X,   IMM_X, DW_X,  FN_X,   N,M_X,   N,N,N,N,N,N,N,CSR_I,N,N,N,N),
+    EBREAK->Seq(Y,N,N,N,N,N,N,X,N,A2_X,   A1_X,   IMM_X, DW_X,  FN_X,   N,M_X,   N,N,N,N,N,N,N,CSR_I,N,N,N,N),
+    MRET->  Seq(Y,N,N,N,N,N,N,X,N,A2_X,   A1_X,   IMM_X, DW_X,  FN_X,   N,M_X,   N,N,N,N,N,N,N,CSR_I,N,N,N,N),
+    WFI->   Seq(Y,N,N,N,N,N,N,X,N,A2_X,   A1_X,   IMM_X, DW_X,  FN_X,   N,M_X,   N,N,N,N,N,N,N,CSR_I,N,N,N,N),
+    CSRRW-> Seq(Y,N,N,N,N,N,N,Y,N,A2_ZERO,A1_RS1, IMM_X, DW_XPR,FN_ADD, N,M_X,   N,N,N,N,N,N,Y,CSR_W,N,N,N,N),
+    CSRRS-> Seq(Y,N,N,N,N,N,N,Y,N,A2_ZERO,A1_RS1, IMM_X, DW_XPR,FN_ADD, N,M_X,   N,N,N,N,N,N,Y,CSR_S,N,N,N,N),
+    CSRRC-> Seq(Y,N,N,N,N,N,N,Y,N,A2_ZERO,A1_RS1, IMM_X, DW_XPR,FN_ADD, N,M_X,   N,N,N,N,N,N,Y,CSR_C,N,N,N,N),
+    CSRRWI->Seq(Y,N,N,N,N,N,N,N,N,A2_IMM, A1_ZERO,IMM_Z, DW_XPR,FN_ADD, N,M_X,   N,N,N,N,N,N,Y,CSR_W,N,N,N,N),
+    CSRRSI->Seq(Y,N,N,N,N,N,N,N,N,A2_IMM, A1_ZERO,IMM_Z, DW_XPR,FN_ADD, N,M_X,   N,N,N,N,N,N,Y,CSR_S,N,N,N,N),
+    CSRRCI->Seq(Y,N,N,N,N,N,N,N,N,A2_IMM, A1_ZERO,IMM_Z, DW_XPR,FN_ADD, N,M_X,   N,N,N,N,N,N,Y,CSR_C,N,N,N,N),
+    // Putch
     BitPat("b00000000000000000000000001111111") ->
       Seq(Y,N,N,N,N,N,N,Y,N,A2_IMM,A1_RS1,IMM_I,DW_XPR,FN_ADD,N,M_X,N,N,N,N,N,N,Y,CSR_N,N,N,N,N),
   ).map({case (k, v) => k -> BitPat(s"b${v.reduce(_ + _)}")}), BitPat(s"b$defaultDec"))
