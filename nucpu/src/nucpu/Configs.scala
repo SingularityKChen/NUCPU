@@ -18,7 +18,8 @@ class Configs(val diffTest: Boolean) {
   val regNum = 32
   // pc init value
   val pcStart = "h80000000"
-  val pcTrap = "h0000006f"
+  val instTrap = "h0000006f"
+  val instPutch = "h0000007f"
 }
 
 class CacheConfigs(diffTest: Boolean) extends Configs(diffTest) {
@@ -159,5 +160,7 @@ object DecodeParams {
     SLLI->  Seq(Y,N,N,N,N,N,N,Y,N,A2_IMM, A1_RS1, IMM_I, DW_XPR,FN_SL,  N,M_X,   N,N,N,N,N,N,Y,CSR_N,N,N,N,N),
     SRLI->  Seq(Y,N,N,N,N,N,N,Y,N,A2_IMM, A1_RS1, IMM_I, DW_XPR,FN_SR,  N,M_X,   N,N,N,N,N,N,Y,CSR_N,N,N,N,N),
     SRAI->  Seq(Y,N,N,N,N,N,N,Y,N,A2_IMM, A1_RS1, IMM_I, DW_XPR,FN_SRA, N,M_X,   N,N,N,N,N,N,Y,CSR_N,N,N,N,N),
+    BitPat("b00000000000000000000000001111111") ->
+      Seq(Y,N,N,N,N,N,N,Y,N,A2_IMM,A1_RS1,IMM_I,DW_XPR,FN_ADD,N,M_X,N,N,N,N,N,N,Y,CSR_N,N,N,N,N),
   ).map({case (k, v) => k -> BitPat(s"b${v.reduce(_ + _)}")}), BitPat(s"b$defaultDec"))
 }

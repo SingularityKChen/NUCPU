@@ -60,6 +60,10 @@ class NUCPU()(implicit val p: Configs) extends Module {
   regFile.io.wAddr := idStage.io.rdWAddr
   // exe_stage -> regfile
   regFile.io.wData := Mux(idStage.io.mem, memStage.io.wbData, exeStage.io.rdData)
+  // Putch
+  when(io.inst === p.instPutch.U) {
+    printf("%c\n", regFile.io.wData)
+  }
   // For DiffTest
   if (p.diffTest) {
     // Commit
@@ -73,7 +77,7 @@ class NUCPU()(implicit val p: Configs) extends Module {
     commitDiffTest.io.valid := instValidReg
     commitDiffTest.io.pc := curPCReg
     commitDiffTest.io.instr := RegNext(io.inst)
-    commitDiffTest.io.skip := false.B
+    commitDiffTest.io.skip := commitDiffTest.io.instr === p.instPutch.U
     commitDiffTest.io.isRVC := false.B
     commitDiffTest.io.scFailed := false.B
     commitDiffTest.io.wen := RegNext(idStage.io.rdWEn)
@@ -105,7 +109,7 @@ class NUCPU()(implicit val p: Configs) extends Module {
     val trapDiffTest = Module(new DifftestTrapEvent)
     val cycleCnt = RegInit(0.U(p.busWidth.W))
     val instCnt = RegInit(0.U(p.busWidth.W))
-    val trapReg = RegNext(io.inst === p.pcTrap.U, false.B)
+    val trapReg = RegNext(io.inst === p.instTrap.U, false.B)
     cycleCnt := Mux(trapReg, 0.U, cycleCnt + 1.U)
     instCnt := instCnt + instValidWire
     trapDiffTest.io.clock    := this.clock
