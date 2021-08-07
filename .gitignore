@@ -10,5 +10,6 @@ test_run_dir/
 # idea
 .idea_modules
 *build/
+*regression/
 
 .DS_Store
