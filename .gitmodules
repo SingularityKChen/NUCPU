@@ -33,3 +33,6 @@
 	path = NEMU
 	url = git@github.com:OpenXiangShan/NEMU.git
 	branch = xs
+[submodule "AM/riscv-tests"]
+	path = AM/riscv-tests
+	url = git@github.com:NJU-ProjectN/riscv-tests.git
