@@ -77,7 +77,10 @@ class MemStage()(implicit val p: Configs) extends Module {
   io.memAddr := io.exeAddr
   io.wbData := loadData
   io.memDoWrite := io.memCmd === ("b" + M_XWR).U
-  io.memWData := io.exeData
+  //  FIXME: unaligned test: 0.U -> io.exeData(7, 0),
+  io.memWData := MuxLookup(io.func3(1, 0), io.exeData, Range(0, 4).map(x =>
+    x.U -> Cat(Fill(pow(2, 3-x).toInt, io.exeData(pow(2, x+3).toInt - 1, 0)))
+  ))
   io.memValid := io.exeMemValid
   io.memMask := wMask
 }

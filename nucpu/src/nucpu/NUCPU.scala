@@ -2,6 +2,7 @@ package nucpu
 
 import chisel3._
 import chisel3.util._
+import chisel3.util.experimental.decode._
 import difftest._
 import nucpu.DecodeParams.{M_XRD, M_XWR}
 
@@ -137,12 +138,21 @@ class NUCPU()(implicit val p: Configs) extends Module {
     loadDiffTest.io.fuType := Mux(loadDiffTest.io.valid, "h0c".U, 0.U)
     // Store
     val storeDiffTest = Module(new DifftestStoreEvent)
+    val wMaskForDiffTest: UInt = decoder(
+      minimizer = EspressoMinimizer,
+      input = Cat(idStage.io.func3(1, 0)),
+      truthTable = TruthTable(Map(
+        BitPat("b11") -> BitPat("b" + "1" * 8),
+        BitPat("b10") -> BitPat("b" + "0" * 4 + "1" * 4),
+        BitPat("b01") -> BitPat("b" + "0" * 6 + "1" * 2),
+        BitPat("b00") -> BitPat("b" + "0" * 7 + "1" * 1),
+      ), BitPat("b" + "1"*(p.busWidth / 8))))
     storeDiffTest.io.clock := this.clock
     storeDiffTest.io.coreid := 0.U
     storeDiffTest.io.index := 0.U
     storeDiffTest.io.valid := RegNext(memStage.io.memDoWrite && memStage.io.memValid)
     storeDiffTest.io.storeAddr := RegNext(memStage.io.memAddr)
-    storeDiffTest.io.storeData := RegNext(memStage.io.memWData)
-    storeDiffTest.io.storeMask := RegNext(Cat(Range(0, 8).map(x => memStage.io.memMask(8*x))))
+    storeDiffTest.io.storeData := RegNext(regFile.io.rs2RData)
+    storeDiffTest.io.storeMask := RegNext(wMaskForDiffTest)
   }
 }
