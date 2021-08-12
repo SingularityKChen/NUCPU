@@ -8,6 +8,7 @@ class IFStageIOs()(implicit val p: Configs) extends Bundle {
   val jumpPC: Bool = Input(Bool())
   val curPC: UInt = Output(UInt(p.busWidth.W))
   val instEn: Bool = Output(Bool())
+  val curPCAdd4: UInt = Output(UInt(p.busWidth.W))
 }
 
 class RegFileIOs()(implicit val p: Configs) extends Bundle {

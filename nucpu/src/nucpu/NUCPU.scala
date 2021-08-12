@@ -59,7 +59,9 @@ class NUCPU()(implicit val p: Configs) extends Module {
   regFile.io.wEn := idStage.io.rdWEn
   regFile.io.wAddr := idStage.io.rdWAddr
   // exe_stage -> regfile
-  regFile.io.wData := Mux(idStage.io.mem, memStage.io.wbData, exeStage.io.rdData)
+  regFile.io.wData := Mux(idStage.io.mem, memStage.io.wbData,
+    Mux(idStage.io.jalr, ifStage.io.curPCAdd4,exeStage.io.rdData)
+  )
   // Putch
   when(io.inst === p.instPutch.U) {
     printf("%c\n", regFile.io.wData)
