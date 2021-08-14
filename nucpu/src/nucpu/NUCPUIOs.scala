@@ -60,6 +60,23 @@ class EXEStageIOs()(implicit val p: Configs) extends Bundle {
   val rdData: UInt = Output(UInt(p.busWidth.W))
 }
 
+class MemStageIOs(implicit val p: Configs) extends Bundle {
+  val exeAddr: UInt = Input(UInt(p.busWidth.W))
+  val exeData: UInt = Input(UInt(p.busWidth.W))
+  val func3: UInt = Input(UInt(3.W))
+  val memCmd: UInt = Input(UInt(M_X.length.W))
+  val exeMemValid: Bool = Input(Bool())
+  // To read memory
+  val memAddr: UInt = Output(UInt(p.busWidth.W))
+  val memRData: UInt = Input(UInt(p.busWidth.W))
+  val memDoWrite: Bool = Output(Bool())
+  val memWData: UInt = Output(UInt(p.busWidth.W))
+  val memMask: UInt = Output(UInt(p.busWidth.W))
+  val memValid: Bool = Output(Bool())
+  // To Write Back
+  val wbData: UInt = Output(UInt(p.busWidth.W))
+}
+
 class InstCtrlIOs extends Bundle {
   val legal: Bool = Bool()
   val fp: Bool = Bool()

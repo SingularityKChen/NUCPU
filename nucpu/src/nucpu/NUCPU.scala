@@ -4,7 +4,7 @@ import chisel3._
 import chisel3.util._
 import chisel3.util.experimental.decode._
 import difftest._
-import nucpu.DecodeParams.{M_XRD, M_XWR}
+import nucpu.DecodeParams.M_XRD
 
 class NUCPU()(implicit val p: Configs) extends Module {
   val io: NUCPUIOs = IO(new NUCPUIOs())
@@ -23,7 +23,7 @@ class NUCPU()(implicit val p: Configs) extends Module {
   idStage.io.inst := io.inst
   idStage.io.curPC := ifStage.io.curPC
   // id_stage -> if_stage
-  ifStage.io.nextPC := Mux(idStage.io.jalr, exeStage.io.rdData, idStage.io.jumpPCVal)
+  ifStage.io.nextPC := Mux(idStage.io.jalr, Cat(exeStage.io.rdData(p.busWidth - 1, 1), 0.U), idStage.io.jumpPCVal)
   // id_stage -> regfile
   regFile.io.rs1RAddr := idStage.io.rs1RAddr
   regFile.io.rs1REn := idStage.io.rs1REn
@@ -84,7 +84,7 @@ class NUCPU()(implicit val p: Configs) extends Module {
     commitDiffTest.io.isRVC := false.B
     commitDiffTest.io.scFailed := false.B
     commitDiffTest.io.wen := RegNext(idStage.io.rdWEn)
-    commitDiffTest.io.wdata := RegNext(Mux(io.memValid && !io.memDoWrite, memStage.io.wbData, exeStage.io.rdData))
+    commitDiffTest.io.wdata := RegNext(regFile.io.wData)
     commitDiffTest.io.wdest := RegNext(idStage.io.rdWAddr)
     // CSR State
     val csrDiffTest = Module(new DifftestCSRState())
