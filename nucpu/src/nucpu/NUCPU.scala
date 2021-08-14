@@ -86,28 +86,6 @@ class NUCPU()(implicit val p: Configs) extends Module {
     commitDiffTest.io.wen := RegNext(idStage.io.rdWEn)
     commitDiffTest.io.wdata := RegNext(regFile.io.wData)
     commitDiffTest.io.wdest := RegNext(idStage.io.rdWAddr)
-    // CSR State
-    val csrDiffTest = Module(new DifftestCSRState())
-    csrDiffTest.io.clock := this.clock
-    csrDiffTest.io.coreid := 0.U
-    csrDiffTest.io.mstatus := 0.U
-    csrDiffTest.io.mcause := 0.U
-    csrDiffTest.io.mepc := 0.U
-    csrDiffTest.io.sstatus := 0.U
-    csrDiffTest.io.scause := 0.U
-    csrDiffTest.io.sepc := 0.U
-    csrDiffTest.io.satp := 0.U
-    csrDiffTest.io.mip := 0.U
-    csrDiffTest.io.mie := 0.U
-    csrDiffTest.io.mscratch := 0.U
-    csrDiffTest.io.sscratch := 0.U
-    csrDiffTest.io.mideleg := 0.U
-    csrDiffTest.io.medeleg := 0.U
-    csrDiffTest.io.mtval:= 0.U
-    csrDiffTest.io.stval:= 0.U
-    csrDiffTest.io.mtvec := 0.U
-    csrDiffTest.io.stvec := 0.U
-    csrDiffTest.io.priviledgeMode := 0.U
     // Trap
     val trapDiffTest = Module(new DifftestTrapEvent)
     val cycleCnt = RegInit(0.U(p.busWidth.W))
