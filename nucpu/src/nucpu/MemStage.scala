@@ -70,8 +70,9 @@ class MemStage()(implicit val p: Configs) extends Module {
       BitPat("b00" + "110") -> BitPat("b" + "0" * 8 + "1" * 8 + "0" * 48),
       BitPat("b00" + "101") -> BitPat("b" + "0" * 16 + "1" * 8 + "0" * 40),
       BitPat("b00" + "100") -> BitPat("b" + "0" * 24 + "1" * 8 + "0" * 32),
-      BitPat("b00" + "010") -> BitPat("b" + "0" * 32 + "1" * 8 + "0" * 24),
-      BitPat("b00" + "001") -> BitPat("b" + "0" * 40 + "1" * 8 + "0" * 16),
+      BitPat("b00" + "011") -> BitPat("b" + "0" * 32 + "1" * 8 + "0" * 24),
+      BitPat("b00" + "010") -> BitPat("b" + "0" * 40 + "1" * 8 + "0" * 16),
+      BitPat("b00" + "001") -> BitPat("b" + "0" * 48 + "1" * 8 + "0" * 8),
       BitPat("b00" + "000") -> BitPat("b" + "0" * 56 + "1" * 8),
     ), BitPat("b" + "1"*p.busWidth)))
   io.memAddr := io.exeAddr
