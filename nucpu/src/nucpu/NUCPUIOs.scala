@@ -46,6 +46,8 @@ class IDStageIOs()(implicit val p: Configs) extends Bundle {
   val func3: UInt = Output(UInt(3.W))
   // False for taking only 32 bit and signed extend
   val aluDW: Bool = Output(Bool())
+  // CSR
+  val csrCMD: UInt = Output(UInt(CSR_X.length.W))
 }
 
 class EXEStageIOs()(implicit val p: Configs) extends Bundle {

@@ -14,6 +14,7 @@ class NUCPU()(implicit val p: Configs) extends Module {
   protected val memStage: MemStage = Module(new MemStage())
   protected val exeStage: EXEStage = Module(new EXEStage())
   protected val regFile: RegFile = Module(new RegFile())
+  protected val csrFile: CSRegFile = Module(new CSRegFile())
   // inst fetch
   io.instAddr := ifStage.io.curPC
   io.instValid := ifStage.io.instEn
@@ -63,6 +64,10 @@ class NUCPU()(implicit val p: Configs) extends Module {
   regFile.io.wData := Mux(idStage.io.mem, memStage.io.wbData,
     Mux(idStage.io.jalr, ifStage.io.curPCAdd4,exeStage.io.rdData)
   )
+  // -> CSR
+  csrFile.io.addr := io.inst(31, 20)
+  csrFile.io.cmd := idStage.io.csrCMD
+  csrFile.io.wData := DontCare
   // Putch
   when(io.inst === p.instPutch.U) {
     printf("%c\n", regFile.io.wData)

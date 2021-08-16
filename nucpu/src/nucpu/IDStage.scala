@@ -14,7 +14,7 @@ class IDStage()(implicit val p: Configs) extends Module {
   protected val instDecoder: UInt = decoder(minimizer = EspressoMinimizer, input = io.inst, truthTable = rv64ITruthTable)
   protected val instCtrlWires: InstCtrlIOs = Wire(new InstCtrlIOs)
   instCtrlWires.connectDecoder(instDecoder)
-  protected val immSign: UInt = io.inst(31).asUInt()
+  protected val immSign: UInt = Mux(instCtrlWires.immSel === s"b$IMM_Z".U, 0.U, io.inst(31).asUInt())
   protected val imm30_20: UInt = Mux(instCtrlWires.immSel === s"b$IMM_U".U, io.inst(30, 20), Cat(Fill(11, immSign)))
   protected val imm19_12: UInt = Mux(instCtrlWires.immSel === BitPat("b01?"), io.inst(19, 12), Cat(Fill(8, immSign)))
   // TODO: IMM_Z
@@ -23,15 +23,19 @@ class IDStage()(implicit val p: Configs) extends Module {
     s"b$IMM_SB".U -> io.inst(7),
     s"b$IMM_U".U -> 0.U,
   ))
-  protected val imm10_5: UInt = Mux(instCtrlWires.immSel === s"b$IMM_U".U, 0.U, io.inst(30, 25))
+  protected val imm10_5: UInt = Mux((instCtrlWires.immSel === s"b$IMM_U".U) || (instCtrlWires.immSel === s"b$IMM_Z".U),
+    0.U, io.inst(30, 25))
   protected val imm4_1: UInt = Mux(instCtrlWires.immSel === BitPat("b00?"),
     io.inst(11, 8),
-    Mux(instCtrlWires.immSel === s"b$IMM_U".U, 0.U, io.inst(24, 21))
+    Mux(instCtrlWires.immSel === s"b$IMM_U".U,
+      0.U,
+      Mux(instCtrlWires.immSel === s"b$IMM_Z".U, io.inst(19, 16), io.inst(24, 21)))
   )
-  protected val imm0: UInt = Mux(instCtrlWires.immSel === s"b$IMM_I".U,
-    io.inst(20),
-    Mux(instCtrlWires.immSel === s"b$IMM_S".U, io.inst(7), 0.U)
-  )
+  protected val imm0: UInt = MuxLookup(instCtrlWires.immSel, 0.U, Array(
+    s"b$IMM_I".U -> io.inst(20),
+    s"b$IMM_S".U -> io.inst(7),
+    s"b$IMM_Z".U -> io.inst(15),
+  ))
   protected val imm: UInt = Cat(Fill(p.busWidth - 31, immSign), imm30_20, imm19_12, imm11, imm10_5, imm4_1, imm0)
   io.aluFn := instCtrlWires.aluFn
   io.alu1Sel := instCtrlWires.alu1Sel
@@ -52,4 +56,5 @@ class IDStage()(implicit val p: Configs) extends Module {
   io.memCmd := instCtrlWires.mem_cmd
   io.func3 := io.inst(14, 12)
   io.aluDW := instCtrlWires.aluDW
+  io.csrCMD := instCtrlWires.csr
 }
