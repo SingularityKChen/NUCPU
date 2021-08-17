@@ -6,11 +6,12 @@ use Cwd qw(getcwd);
 use File::Find;
 my $root_dir = getcwd;
 $| = 1;
-my ($regression, $riscv_test, $cpu_test, $am_test);
+my ($regression, $riscv_test, $cpu_test, $am_test, $mario_test, $update_build);
 my $AM_dir = $root_dir."/AM";
 my $riscv_test_dir = $AM_dir."/riscv-tests/build";
 my $cpu_test_dir = $AM_dir."/am-kernels/tests/cpu-tests/build";
 my $am_test_dir = $AM_dir."/am-kernels/tests/am-tests/build";
+my $mario_test_dir = $AM_dir."/fceux-am/build";
 my $waveform_filename = $root_dir."/build/NUCPU.vcd";
 my $regression_log_dir = $root_dir."/regression";
 my $emu_file = $root_dir."/build/emu";
@@ -25,42 +26,58 @@ GetOptions (
     'regression|r' => \$regression,
     'rsicvtest|v'  => \$riscv_test,
     'cputest|c'    => \$cpu_test,
-    'amtest|a'     => \$am_test
+    'amtest|a'     => \$am_test,
+    'mario|m'      => \$mario_test,
+    'updatebuild|u'    => \$update_build
 );
 
 if (defined $regression) {
     $riscv_test = 1;
     $cpu_test = 1;
     $am_test = 1;
+    $mario_test = 1;
 }
-# update RTL
-my $update_RTL = system("cd $root_dir; mill -i __.nucpu.tests.runMain nucpu.testers.Generator");
-# update EMU
-my $update_EMU = system("cd $root_dir; make -C dependencies/difftest clean; make -C dependencies/difftest emu EMU_TRACE=1");
-# Regression
+# update build C files
+if (defined($update_build)) {
+    foreach my $build_dir ($riscv_test_dir, $cpu_test_dir, $am_test_dir) {
+        system("cd $build_dir/../; make clean; make ARCH=riscv64-mycpu");
+    }
+    system("cd $mario_test_dir/../; make clean; make ARCH=riscv64-mycpu mainargs=mario");
+    printf("[INFO] Build finished.\n");
+}
 my @failed_tests;
-if ($update_EMU == 0 && $update_RTL == 0) {
-    printf("[INFO] Start Regression Tests.\n");
-    if (defined $riscv_test) {
-        do_regression_tests($riscv_test_dir);
+if (defined($riscv_test) || defined($cpu_test) || defined($am_test) || defined($mario_test)) {
+    # update RTL
+    my $update_RTL = system("cd $root_dir; mill -i __.nucpu.tests.runMain nucpu.testers.Generator");
+    # update EMU
+    my $update_EMU = system("cd $root_dir; make -C dependencies/difftest clean; make -C dependencies/difftest emu EMU_TRACE=1");
+    # Regression
+    if ($update_EMU == 0 && $update_RTL == 0) {
+        printf("[INFO] Start Regression Tests.\n");
+        if (defined $riscv_test) {
+            do_regression_tests($riscv_test_dir);
+        }
+        if (defined($cpu_test)) {
+            do_regression_tests($cpu_test_dir);
+        }
+        if (defined($am_test)) {
+            do_regression_tests($am_test_dir);
+        }
+        if (defined($mario_test)) {
+            do_regression_tests($mario_test_dir);
+        }
+        printf("[INFO] Regression Test Finished. The failed cases are:\n");
+        open(FAILEDFILES, ">", $regression_log_dir."/failed.txt") || die "Can't write failed filenames $!\n";
+        foreach my $failed_file (@failed_tests) {
+            printf($failed_file."\n");
+            print FAILEDFILES $failed_file;
+            print FAILEDFILES "\n";
+        }
+        close(FAILEDFILES);
     }
-    if (defined($cpu_test)) {
-        do_regression_tests($cpu_test_dir);
+    else {
+        printf("[ERROR] Rebuild RTL or EMU error!\n");
     }
-    if (defined($am_test)) {
-        do_regression_tests($am_test_dir);
-    }
-    printf("[INFO] Regression Test Finished. The failed cases are:\n");
-    open(FAILEDFILES, ">", $regression_log_dir."/failed.txt") || die "Can't write failed filenames $!\n";
-    foreach my $failed_file (@failed_tests) {
-        printf($failed_file."\n");
-        print FAILEDFILES $failed_file;
-        print FAILEDFILES "\n";
-    }
-    close(FAILEDFILES);
-}
-else {
-    printf("[ERROR] Rebuild RTL or EMU error!\n");
 }
 
 sub get_bin_files {
