@@ -21,7 +21,7 @@
 [submodule "dependencies/difftest"]
 	path = dependencies/difftest
 	url = git@github.com:SingularityKChen/difftest.git
-	branch = xiangshan
+	branch = ysyx
 [submodule "AM/am-kernels"]
 	path = AM/am-kernels
 	url = git@github.com:NJU-ProjectN/am-kernels.git
@@ -36,3 +36,9 @@
 [submodule "AM/riscv-tests"]
 	path = AM/riscv-tests
 	url = git@github.com:NJU-ProjectN/riscv-tests.git
+[submodule "AM/fceux-am"]
+	path = AM/fceux-am
+	url = git@github.com:SingularityKChen/fceux-am.git
+[submodule "DRAMsim3"]
+	path = DRAMsim3
+	url = git@github.com:OpenXiangShan/DRAMsim3.git
