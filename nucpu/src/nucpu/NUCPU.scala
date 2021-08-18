@@ -101,7 +101,7 @@ class NUCPU()(implicit val p: Configs) extends Module {
     trapDiffTest.io.clock    := this.clock
     trapDiffTest.io.coreid   := 0.U
     trapDiffTest.io.valid    := trapReg
-    trapDiffTest.io.code     := 0.U // GoodTrap
+    trapDiffTest.io.code     := regFile.io.trapCode.getOrElse(0.U) // GoodTrap
     trapDiffTest.io.pc       := curPCReg
     trapDiffTest.io.cycleCnt := cycleCnt
     trapDiffTest.io.instrCnt := instCnt

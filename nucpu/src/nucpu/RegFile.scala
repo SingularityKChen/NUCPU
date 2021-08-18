@@ -19,6 +19,7 @@ class RegFile()(implicit val p: Configs) extends Module {
   io.rs2RData := rs2Wire
   // for DiffTest
   if (p.diffTest) {
+    io.trapCode.foreach(x => x := regFiles(10)(2, 0))
     val mod: DifftestArchIntRegState = Module(new DifftestArchIntRegState)
     mod.io.clock := this.clock
     mod.io.coreid := 0.U

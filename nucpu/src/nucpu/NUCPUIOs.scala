@@ -21,6 +21,7 @@ class RegFileIOs()(implicit val p: Configs) extends Bundle {
   val rs2RAddr: UInt = Input(UInt(p.addrWidth.W))
   val rs2RData: UInt = Output(UInt(p.busWidth.W))
   val rs2REn: Bool = Input(Bool())
+  val trapCode: Option[UInt] = if (p.diffTest) Some(Output(UInt(3.W))) else None
 }
 
 class IDStageIOs()(implicit val p: Configs) extends Bundle {
