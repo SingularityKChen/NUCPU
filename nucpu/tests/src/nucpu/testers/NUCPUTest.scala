@@ -96,8 +96,10 @@ class NUCPUTest extends AnyFlatSpec with Matchers with ChiselScalatestTester {
             require(dataIdx < dataArray.length,
               s"[ERROR] Memory index should less than ${dataArray.length} but $dataIdx")
             if (dutIO.memDoWrite.peek().litToBoolean) {
-              val writeData = "h" + dutIO.memWData.peek().litValue().toString(16)
-              dataArray(dataIdx) = writeData
+              val writeData = dutIO.memWData.peek().litValue().toInt
+              val wMask = dutIO.memMask.peek().litValue().toInt
+              val outValue = Integer.parseInt(dataArray(dataIdx).stripPrefix("h"), 16)
+              dataArray(dataIdx) = "h" + ((outValue & ~wMask) | (writeData & wMask)).toHexString
               println(s"[INFO] Write 0x$writeData into 0x${curAddr.toHexString}")
             } else {
               val readData = dataArray(dataIdx)
