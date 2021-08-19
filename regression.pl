@@ -6,7 +6,7 @@ use Cwd qw(getcwd);
 use File::Find;
 my $root_dir = getcwd;
 $| = 1;
-my ($regression, $riscv_test, $cpu_test, $am_test, $mario_test, $update_build);
+my ($regression, $riscv_test, $cpu_test, $am_test, $mario_test, $time_test, $update_build);
 my $AM_dir = $root_dir."/AM";
 my $riscv_test_dir = $AM_dir."/riscv-tests/build";
 my $cpu_test_dir = $AM_dir."/am-kernels/tests/cpu-tests/build";
@@ -23,12 +23,13 @@ if (-e $regression_log_dir) {
 }
 
 GetOptions (
-    'regression|r' => \$regression,
-    'rsicvtest|v'  => \$riscv_test,
-    'cputest|c'    => \$cpu_test,
-    'amtest|a'     => \$am_test,
-    'mario|m'      => \$mario_test,
-    'updatebuild|u'    => \$update_build
+    'regression|r'  => \$regression,
+    'rsicvtest|v'   => \$riscv_test,
+    'cputest|c'     => \$cpu_test,
+    'amtest|a'      => \$am_test,
+    'mario|m'       => \$mario_test,
+    'updatebuild|u' => \$update_build,
+    'timetest|t'    => \$time_test,
 );
 
 if (defined $regression) {
@@ -37,6 +38,9 @@ if (defined $regression) {
     $am_test = 1;
     $mario_test = 1;
 }
+if (defined($time_test)) {
+    $am_test = 1;
+}
 # update build C files
 if (defined($update_build)) {
     foreach my $build_dir ($riscv_test_dir, $cpu_test_dir, $am_test_dir) {
@@ -44,6 +48,9 @@ if (defined($update_build)) {
     }
     system("cd $mario_test_dir/../; make clean; make ARCH=riscv64-mycpu mainargs=mario");
     printf("[INFO] Build finished.\n");
+}
+if (defined($time_test)) {
+    system("cd $am_test_dir/../; make clean; make ARCH=riscv64-mycpu mainargs=t");
 }
 my @failed_tests;
 if (defined($riscv_test) || defined($cpu_test) || defined($am_test) || defined($mario_test)) {

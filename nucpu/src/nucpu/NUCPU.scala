@@ -4,7 +4,7 @@ import chisel3._
 import chisel3.util._
 import chisel3.util.experimental.decode._
 import difftest._
-import nucpu.DecodeParams.M_XRD
+import nucpu.DecodeParams.{CSR_N, M_XRD}
 
 class NUCPU()(implicit val p: Configs) extends Module {
   val io: NUCPUIOs = IO(new NUCPUIOs())
@@ -61,9 +61,11 @@ class NUCPU()(implicit val p: Configs) extends Module {
   regFile.io.wEn := idStage.io.rdWEn
   regFile.io.wAddr := idStage.io.rdWAddr
   // exe_stage -> regfile
+  protected val opCSR: Bool = idStage.io.csrCMD =/= ("b" + CSR_N).U
   regFile.io.wData := Mux(idStage.io.mem, memStage.io.wbData,
-    Mux(idStage.io.jalr, ifStage.io.curPCAdd4,exeStage.io.rdData)
-  )
+    Mux(idStage.io.jalr, ifStage.io.curPCAdd4,
+      Mux(opCSR, csrFile.io.rData, exeStage.io.rdData)
+  ))
   // -> CSR
   csrFile.io.addr := io.inst(31, 20)
   csrFile.io.cmd := idStage.io.csrCMD
@@ -85,7 +87,7 @@ class NUCPU()(implicit val p: Configs) extends Module {
     commitDiffTest.io.valid := instValidReg
     commitDiffTest.io.pc := curPCReg
     commitDiffTest.io.instr := RegNext(io.inst)
-    commitDiffTest.io.skip := commitDiffTest.io.instr === p.instPutch.U
+    commitDiffTest.io.skip := (commitDiffTest.io.instr === p.instPutch.U) || RegNext(opCSR)
     commitDiffTest.io.isRVC := false.B
     commitDiffTest.io.scFailed := false.B
     commitDiffTest.io.wen := RegNext(idStage.io.rdWEn)
