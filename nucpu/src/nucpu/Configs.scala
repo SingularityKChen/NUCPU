@@ -19,7 +19,7 @@ class Configs(val diffTest: Boolean) {
   // pc init value
   val pcStart = "h80000000"
   val instTrap = "h0000006b"
-  val instPutch = "h0000007f"
+  val instPutch = "h0000007b"
 }
 
 class CacheConfigs(diffTest: Boolean) extends Configs(diffTest) {
