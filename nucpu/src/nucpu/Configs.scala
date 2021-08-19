@@ -20,6 +20,14 @@ class Configs(val diffTest: Boolean) {
   val pcStart = "h80000000"
   val instTrap = "h0000006b"
   val instPutch = "h0000007b"
+  // csr
+  val vAddrWidth = 39
+  val eCallAddr: UInt = 0x000.U
+  val eBreakAddr: UInt = 0x001.U
+  val mRetAddr: UInt = 0x302.U
+  val sRetAddr: UInt = 0x102.U
+  val uRetAddr: UInt = 0x002.U
+  val dRetAddr: UInt = 0x7b2.U
 }
 
 class CacheConfigs(diffTest: Boolean) extends Configs(diffTest) {

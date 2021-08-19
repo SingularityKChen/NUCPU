@@ -7,17 +7,21 @@ import nucpu.DecodeParams._
 
 class CSRegFile(implicit val p: Configs) extends Module {
   val io = IO(new Bundle {
+    val pc: UInt = Input(UInt(p.busWidth.W))
     val cmd: UInt = Input(UInt(CSR_X.length.W))
     val addr: UInt = Input(UInt(p.instImmW.W))
     val rData: UInt = Output(UInt(p.busWidth.W))
     val wData: UInt = Input(UInt(p.busWidth.W))
     val time: UInt = Output(UInt(p.busWidth.W))
+    val eRet: Bool = Output(Bool())
     val status = new Bundle {
       val wfi: Bool = Output(Bool())
       val mie: Bool = Output(Bool())
       val isa: UInt = Output(UInt(p.instW.W))
     }
   })
+  protected val wEn: Bool = io.cmd(2) && (io.cmd(1) || io.cmd(0))
+  protected val systemInst: Bool = io.cmd === ("b" + CSR_I).U
   protected val misa: UInt = RegInit("h4000100".U) // RV64I FIXME
   protected val mcycle: UInt = RegInit(0.U(p.busWidth.W))
   protected val priviledgeMode: UInt = RegInit(0.U(2.W))
@@ -39,12 +43,16 @@ class CSRegFile(implicit val p: Configs) extends Module {
   protected val mideleg: UInt = RegInit(0.U(p.busWidth.W))
   protected val medeleg: UInt = RegInit(0.U(p.busWidth.W))
   protected val wfi: Bool = RegInit(false.B)
-  mcycle := mcycle + 1.U
-  io.time := mcycle
-  io.status.wfi := wfi
-  io.status.mie := mie // FIXME
-  io.status.isa := misa
-  io.rData := MuxLookup(io.addr, 0.U, Array(
+  // System Instruction
+  protected val isEBreak: Bool = io.addr === p.eBreakAddr && systemInst
+  protected val isECall: Bool = io.addr === p.eCallAddr && systemInst
+  protected val isMRet: Bool = io.addr === p.mRetAddr && systemInst
+  protected val isSRet: Bool = io.addr === p.sRetAddr && systemInst
+  protected val isURet: Bool = io.addr === p.uRetAddr && systemInst
+  protected val isDRet: Bool = io.addr === p.dRetAddr && systemInst
+  val exception: Bool = isECall || isEBreak
+  io.eRet := isEBreak || isECall || isMRet || isSRet || isURet || isDRet
+  protected val regMap: Array[(UInt, UInt)] = Array(
     CSRs.mcycle.U -> mcycle,
     CSRs.mstatus.U -> mstatus,
     CSRs.mcause.U -> mcause,
@@ -61,8 +69,19 @@ class CSRegFile(implicit val p: Configs) extends Module {
     CSRs.mscratch.U -> mscratch,
     CSRs.sscratch.U -> sscratch,
     CSRs.mideleg.U -> mideleg,
-    CSRs.medeleg.U -> medeleg
-  ))
+    CSRs.medeleg.U -> medeleg,
+  )
+  mcycle := mcycle + 1.U
+  mepc := Mux(exception, Cat(io.pc(p.busWidth-1, 1), 0.U), mepc) // FIXME: correct the condition
+  io.time := mcycle
+  io.status.wfi := wfi
+  io.status.mie := mie // FIXME
+  io.status.isa := misa
+  // CSR Read
+  io.rData := MuxLookup(io.addr, 0.U, regMap)
+  // CSR Write FIXME: remove those read only CSR
+  regMap.foreach({ case (addr, reg) => reg := Mux(wEn && io.addr === addr, io.wData, reg)
+  })
   if (p.diffTest) {
     val csrDiffTest = Module(new DifftestCSRState)
     csrDiffTest.io.clock := clock

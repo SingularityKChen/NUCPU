@@ -67,6 +67,7 @@ class NUCPU()(implicit val p: Configs) extends Module {
       Mux(opCSR, csrFile.io.rData, exeStage.io.rdData)
   ))
   // -> CSR
+  csrFile.io.pc := ifStage.io.curPC
   csrFile.io.addr := io.inst(31, 20)
   csrFile.io.cmd := idStage.io.csrCMD
   csrFile.io.wData := DontCare
