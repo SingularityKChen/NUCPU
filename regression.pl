@@ -122,6 +122,9 @@ sub do_regression_tests {
     foreach my $test_file (@test_files) {
         my $test_result = run_test_case($test_file, $postfix);
         if ($test_result != 0) {
+            if (defined($postfix)) {
+                $test_file = $test_file."_".$postfix;
+            }
             push(@failed_tests, $test_file);
         }
     }

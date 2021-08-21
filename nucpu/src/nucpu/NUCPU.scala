@@ -70,7 +70,9 @@ class NUCPU()(implicit val p: Configs) extends Module {
   csrFile.io.pc := ifStage.io.curPC
   csrFile.io.addr := io.inst(31, 20)
   csrFile.io.cmd := idStage.io.csrCMD
-  csrFile.io.wData := DontCare
+  csrFile.io.wData := Mux(idStage.io.mem, memStage.io.wbData,
+    Mux(idStage.io.jalr, ifStage.io.curPCAdd4, exeStage.io.rdData
+    ))
   // Putch
   when(io.inst === p.instPutch.U) {
     printf("%c\n", regFile.io.wData)

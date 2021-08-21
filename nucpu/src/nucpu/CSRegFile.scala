@@ -25,8 +25,16 @@ class CSRegFile(implicit val p: Configs) extends Module {
   protected val misa: UInt = RegInit("h4000100".U) // RV64I FIXME
   protected val mcycle: UInt = RegInit(0.U(p.busWidth.W))
   protected val priviledgeMode: UInt = RegInit(0.U(2.W))
-  protected val mstatus: UInt = RegInit(0.U(p.busWidth.W))
-  protected val sstatusRmask: UInt = RegInit(0.U(p.busWidth.W))
+  protected val mstatus: UInt = RegInit(3.U(p.busWidth.W))
+  // Sstatus Write Mask
+  // -------------------------------------------------------
+  //    19           9   5     2
+  // 0  1100 0000 0001 0010 0010
+  // 0  c    0    1    2    2
+  // -------------------------------------------------------
+  val sstatusWmask: UInt = "hc6122".U
+  // Sstatus Read Mask = (SSTATUS_WMASK | (0xf << 13) | (1ull << 63) | (3ull << 32))
+  val sstatusRmask: UInt = sstatusWmask | "h8000000300018000".U
   protected val mcause: UInt = RegInit(0.U(p.busWidth.W))
   protected val mepc: UInt = RegInit(0.U(p.busWidth.W))
   protected val sepc: UInt = RegInit(0.U(p.busWidth.W))
@@ -52,7 +60,12 @@ class CSRegFile(implicit val p: Configs) extends Module {
   protected val isDRet: Bool = io.addr === p.dRetAddr && systemInst
   val exception: Bool = isECall || isEBreak
   io.eRet := isEBreak || isECall || isMRet || isSRet || isURet || isDRet
-  protected val regMap: Array[(UInt, UInt)] = Array(
+  // MRO CSRs
+  protected val roRegMap: Array[(UInt, UInt)] = Array(
+    CSRs.misa.U -> misa,
+  )
+  // MRW CSRs
+  protected val rwRegMap: Array[(UInt, UInt)] = Array(
     CSRs.mcycle.U -> mcycle,
     CSRs.mstatus.U -> mstatus,
     CSRs.mcause.U -> mcause,
@@ -71,18 +84,20 @@ class CSRegFile(implicit val p: Configs) extends Module {
     CSRs.mideleg.U -> mideleg,
     CSRs.medeleg.U -> medeleg,
   )
-  mcycle := mcycle + 1.U
-  mepc := Mux(exception, Cat(io.pc(p.busWidth-1, 1), 0.U), mepc) // FIXME: correct the condition
   io.time := mcycle
   io.status.wfi := wfi
   io.status.mie := mie // FIXME
   io.status.isa := misa
   // CSR Read
-  io.rData := MuxLookup(io.addr, 0.U, regMap)
-  // CSR Write FIXME: remove those read only CSR
-  regMap.foreach({ case (addr, reg) => reg := Mux(wEn && io.addr === addr, io.wData, reg)
-  })
-  if (p.diffTest) {
+  io.rData := MuxLookup(io.addr, 0.U, rwRegMap ++ roRegMap)
+  // CSR Write
+  mcycle := Mux(wEn && io.addr === CSRs.mcycle.U, io.wData, mcycle + 1.U)
+  // FIXME: correct the condition
+  mepc := Mux(wEn && io.addr === CSRs.mepc.U, io.wData, Mux(exception, Cat(io.pc(p.busWidth-1, 1), 0.U), mepc))
+  // FIXME
+  mcause := Mux(wEn && io.addr === CSRs.mcause.U, io.wData, mcause)
+  mstatus := Mux(wEn && io.addr === CSRs.mstatus.U, io.wData, mstatus)
+    if (p.diffTest) {
     val csrDiffTest = Module(new DifftestCSRState)
     csrDiffTest.io.clock := clock
     csrDiffTest.io.coreid := 0.U

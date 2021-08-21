@@ -180,7 +180,7 @@ object DecodeParams {
     CSRRSI->Seq(Y,N,N,N,N,N,N,N,N,A2_IMM, A1_ZERO,IMM_Z, DW_XPR,FN_ADD, N,M_X,   N,N,N,N,N,N,Y,CSR_S,N,N,N,N),
     CSRRCI->Seq(Y,N,N,N,N,N,N,N,N,A2_IMM, A1_ZERO,IMM_Z, DW_XPR,FN_ADD, N,M_X,   N,N,N,N,N,N,Y,CSR_C,N,N,N,N),
     // Putch
-    BitPat("b00000000000000000000000001111111") ->
+    BitPat("b00000000000000000000000001111011") ->
       Seq(Y,N,N,N,N,N,N,Y,N,A2_IMM,A1_RS1,IMM_I,DW_XPR,FN_ADD,N,M_X,N,N,N,N,N,N,Y,CSR_N,N,N,N,N),
   ).map({case (k, v) => k -> BitPat(s"b${v.reduce(_ + _)}")}), BitPat(s"b$defaultDec"))
 }
