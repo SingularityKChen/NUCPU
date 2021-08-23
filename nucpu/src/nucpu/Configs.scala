@@ -28,6 +28,10 @@ class Configs(val diffTest: Boolean) {
   val sRetAddr: UInt = 0x102.U
   val uRetAddr: UInt = 0x002.U
   val dRetAddr: UInt = 0x7b2.U
+  val mMode = 3
+  val hMode = 2
+  val sMode = 1
+  val uMode = 0
 }
 
 class CacheConfigs(diffTest: Boolean) extends Configs(diffTest) {

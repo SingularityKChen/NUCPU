@@ -24,7 +24,9 @@ class NUCPU()(implicit val p: Configs) extends Module {
   idStage.io.inst := io.inst
   idStage.io.curPC := ifStage.io.curPC
   // id_stage -> if_stage
-  ifStage.io.nextPC := Mux(idStage.io.jalr, Cat(exeStage.io.rdData(p.busWidth - 1, 1), 0.U), idStage.io.jumpPCVal)
+  ifStage.io.nextPC :=
+    Mux(idStage.io.jalr, Cat(exeStage.io.rdData(p.busWidth - 1, 1), 0.U),
+    Mux(csrFile.io.eRet, csrFile.io.evec, idStage.io.jumpPCVal))
   // id_stage -> regfile
   regFile.io.rs1RAddr := idStage.io.rs1RAddr
   regFile.io.rs1REn := idStage.io.rs1REn
@@ -73,6 +75,8 @@ class NUCPU()(implicit val p: Configs) extends Module {
   csrFile.io.wData := Mux(idStage.io.mem, memStage.io.wbData,
     Mux(idStage.io.jalr, ifStage.io.curPCAdd4, exeStage.io.rdData
     ))
+  csrFile.io.exception := DontCare
+  csrFile.io.cause := DontCare
   // Putch
   when(io.inst === p.instPutch.U) {
     printf("%c\n", regFile.io.wData)
