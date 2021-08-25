@@ -1,6 +1,7 @@
 package nucpu
 
 import chisel3._
+import chisel3.util._
 import DecodeParams._
 
 class IFStageIOs()(implicit val p: Configs) extends Bundle {
@@ -78,6 +79,50 @@ class MemStageIOs(implicit val p: Configs) extends Bundle {
   val memValid: Bool = Output(Bool())
   // To Write Back
   val wbData: UInt = Output(UInt(p.busWidth.W))
+}
+
+class MStatusRegIOs extends Bundle {
+  val sd: Bool = Bool()
+  val wpri5: UInt = UInt(27.W)
+  val sxl: UInt = UInt(2.W)
+  val uxl: UInt = UInt(2.W)
+  val wpri4: UInt = UInt(9.W)
+  val tsr: Bool = Bool()
+  val tw: Bool = Bool()
+  val tvm: Bool = Bool()
+  val mxr: Bool = Bool()
+  val sum: Bool = Bool()
+  val mprv: Bool = Bool()
+  val xs: UInt = UInt(2.W)
+  val fs: UInt = UInt(2.W)
+  val mpp: UInt = UInt(2.W)
+  val wpri3: UInt = UInt(2.W)
+  val spp: Bool = Bool()
+  val mpie: Bool = Bool()
+  val wpri2: Bool = Bool()
+  val spie: Bool = Bool()
+  val upie: Bool = Bool()
+  val mie: Bool = Bool()
+  val wpri1: Bool = Bool()
+  val sie: Bool = Bool()
+  val uie: Bool = Bool()
+  private val mStatusValues = Seq(sd, wpri5, sxl, uxl, wpri4, tsr, tw, tvm, mxr, sum, mprv,
+    xs, fs, mpp, wpri3, spp, mpie, wpri2, spie, upie, mie, wpri1, sie, uie)
+  def mStatusRegRead: UInt = {
+    Cat(mStatusValues)
+  }
+  def mStatusRegWrite(wData: UInt): Unit = {
+    var curBit = 0
+    for (mStatusVal <- mStatusValues.reverse) {
+      val curValBit = mStatusVal.getWidth
+      if (curValBit == 1) {
+        mStatusVal := wData(curBit)
+      } else {
+        mStatusVal := wData(curBit + curValBit -1, curBit)
+      }
+      curBit += curValBit
+    }
+  }
 }
 
 class InstCtrlIOs extends Bundle {
