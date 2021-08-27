@@ -57,6 +57,8 @@ class CSRegFile(implicit val p: Configs) extends Module {
   protected val mideleg: UInt = RegInit(0.U(p.busWidth.W))
   protected val medeleg: UInt = RegInit(0.U(p.busWidth.W))
   protected val wfi: Bool = RegInit(false.B)
+  /** read-modify-write data */
+  protected val rmwData: UInt = readModifyWriteCSR(io.cmd, io.rData, io.wData)
   // privilege mode
   protected val isMMode: Bool = curMode === p.mMode.U
   protected val isSMode: Bool = curMode === p.sMode.U
@@ -117,15 +119,15 @@ class CSRegFile(implicit val p: Configs) extends Module {
   io.rData := MuxLookup(io.addr, 0.U, rwSpecialRegMap ++ rwRegMap ++ roRegMap)
   // CSR Write
   // For common write reg
-  rwRegMap.foreach({ case (addr, reg) => reg := Mux(wEn && io.addr === addr, io.wData, reg)
+  rwRegMap.foreach({ case (addr, reg) => reg := Mux(wEn && io.addr === addr, rmwData, reg)
   })
   // For special write reg
-  mcycle := Mux(wEn && io.addr === CSRs.mcycle.U, io.wData, mcycle + 1.U)
+  mcycle := Mux(wEn && io.addr === CSRs.mcycle.U, rmwData, mcycle + 1.U)
   mepc :=
-    Mux(wEn && io.addr === CSRs.mepc.U, io.wData,
+    Mux(wEn && io.addr === CSRs.mepc.U, rmwData,
     Mux(isMExp, Cat(io.pc(p.busWidth-1, 1), 0.U), mepc))
   mcause :=
-    Mux(wEn && io.addr === CSRs.mcause.U, io.wData, // if write
+    Mux(wEn && io.addr === CSRs.mcause.U, rmwData, // if write
     Mux(isMExp, cause, mcause) // if exception
   )
   // mstatus
@@ -138,33 +140,36 @@ class CSRegFile(implicit val p: Configs) extends Module {
     mstatus.mie := mstatus.mpie
     mstatus.mpp := p.uMode.U
   } .elsewhen(wEn && io.addr === CSRs.mstatus.U) {
-    mstatus.mStatusRegWrite(io.wData)
+    mstatus.mStatusRegWrite(rmwData)
   } .otherwise(
     mstatus.mStatusRegWrite(mstatus.mStatusRegRead)
   )
   // Jump to mtvec or stvec when entry exception; Jump to the mepc or sepc when return from the exception;
   io.evec := Mux(exception, Mux(isMMode, mtvec, stvec), Mux(isMMode, mepc, sepc))
-    if (p.diffTest) {
+  def readModifyWriteCSR(cmd: UInt, rData: UInt, wData: UInt): UInt = {
+    (Mux(cmd(1), rData, 0.U) | wData) & (~Mux(cmd(1,0).andR(), wData, 0.U)).asUInt()
+  }
+  if (p.diffTest) {
     val csrDiffTest = Module(new DifftestCSRState)
     csrDiffTest.io.clock := clock
     csrDiffTest.io.coreid := 0.U
-    csrDiffTest.io.priviledgeMode := RegNext(curMode)
-    csrDiffTest.io.mstatus := RegNext(mstatus.mStatusRegRead)
-    csrDiffTest.io.sstatus := RegNext(mstatus.mStatusRegRead & sstatusRmask)
-    csrDiffTest.io.mepc := RegNext(mepc)
-    csrDiffTest.io.sepc := RegNext(sepc)
-    csrDiffTest.io.mtval:= RegNext(mtval)
-    csrDiffTest.io.stval:= RegNext(stval)
-    csrDiffTest.io.mtvec := RegNext(mtvec)
-    csrDiffTest.io.stvec := RegNext(stvec)
-    csrDiffTest.io.mcause := RegNext(mcause)
-    csrDiffTest.io.scause := RegNext(scause)
-    csrDiffTest.io.satp := RegNext(satp)
-    csrDiffTest.io.mip := RegNext(mip)
-    csrDiffTest.io.mie := RegNext(mie)
-    csrDiffTest.io.mscratch := RegNext(mscratch)
-    csrDiffTest.io.sscratch := RegNext(sscratch)
-    csrDiffTest.io.mideleg := RegNext(mideleg)
-    csrDiffTest.io.medeleg := RegNext(medeleg)
+      csrDiffTest.io.priviledgeMode := curMode
+      csrDiffTest.io.mstatus := mstatus.mStatusRegRead
+      csrDiffTest.io.sstatus := mstatus.mStatusRegRead & sstatusRmask
+      csrDiffTest.io.mepc := mepc
+      csrDiffTest.io.sepc := sepc
+      csrDiffTest.io.mtval:= mtval
+      csrDiffTest.io.stval:= stval
+      csrDiffTest.io.mtvec := mtvec
+      csrDiffTest.io.stvec := stvec
+      csrDiffTest.io.mcause := mcause
+      csrDiffTest.io.scause := scause
+      csrDiffTest.io.satp := satp
+      csrDiffTest.io.mip := mip
+      csrDiffTest.io.mie := mie
+      csrDiffTest.io.mscratch := mscratch
+      csrDiffTest.io.sscratch := sscratch
+      csrDiffTest.io.mideleg := mideleg
+      csrDiffTest.io.medeleg := medeleg
   }
 }

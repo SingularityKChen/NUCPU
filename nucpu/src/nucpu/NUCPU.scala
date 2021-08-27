@@ -25,8 +25,8 @@ class NUCPU()(implicit val p: Configs) extends Module {
   idStage.io.curPC := ifStage.io.curPC
   // id_stage -> if_stage
   ifStage.io.nextPC :=
-    Mux(idStage.io.jalr, Cat(exeStage.io.rdData(p.busWidth - 1, 1), 0.U),
-    Mux(csrFile.io.eRet, csrFile.io.evec, idStage.io.jumpPCVal))
+    Mux(csrFile.io.eRet, csrFile.io.evec,
+    Mux(idStage.io.jalr, Cat(exeStage.io.rdData(p.busWidth - 1, 1), 0.U), idStage.io.jumpPCVal))
   // id_stage -> regfile
   regFile.io.rs1RAddr := idStage.io.rs1RAddr
   regFile.io.rs1REn := idStage.io.rs1REn
@@ -58,7 +58,7 @@ class NUCPU()(implicit val p: Configs) extends Module {
   // write back
   // exe_stage -> if_stage
   protected val brTaken: Bool = idStage.io.br & exeStage.io.rdData(0)
-  ifStage.io.jumpPC := idStage.io.jal | brTaken | idStage.io.jalr
+  ifStage.io.jumpPC := idStage.io.jal | brTaken | idStage.io.jalr | csrFile.io.eRet
   // id_stage -> regfile
   regFile.io.wEn := idStage.io.rdWEn
   regFile.io.wAddr := idStage.io.rdWAddr
@@ -94,7 +94,7 @@ class NUCPU()(implicit val p: Configs) extends Module {
     commitDiffTest.io.valid := instValidReg
     commitDiffTest.io.pc := curPCReg
     commitDiffTest.io.instr := RegNext(io.inst)
-    commitDiffTest.io.skip := (commitDiffTest.io.instr === p.instPutch.U) || RegNext(opCSR)
+    commitDiffTest.io.skip := (commitDiffTest.io.instr === p.instPutch.U)
     commitDiffTest.io.isRVC := false.B
     commitDiffTest.io.scFailed := false.B
     commitDiffTest.io.wen := RegNext(idStage.io.rdWEn)
