@@ -81,6 +81,46 @@ class MemStageIOs(implicit val p: Configs) extends Bundle {
   val wbData: UInt = Output(UInt(p.busWidth.W))
 }
 
+class InterruptIOs extends Bundle {
+  val mtip: Bool = Bool()
+  val msip: Bool = Bool()
+  val meip: Bool = Bool()
+}
+
+class MIPRegIOs extends Bundle {
+  val wpri7: UInt = UInt(52.W)
+  val meip: Bool = Bool()
+  val wpri6: Bool = Bool()
+  val seip: Bool = Bool()
+  val wpri5: Bool = Bool()
+  val mtip: Bool = Bool()
+  val wpri4: Bool = Bool()
+  val stip: Bool = Bool()
+  val wpri3: Bool = Bool()
+  val msip: Bool = Bool()
+  val wpri2: Bool = Bool()
+  val ssip: Bool = Bool()
+  val wpri1: Bool = Bool()
+  private val mipRegValues = Seq(wpri7, meip, wpri6, seip, wpri5,
+    mtip, wpri4, stip, wpri3, msip, wpri2, ssip, wpri1)
+  def mipRegRead: UInt = {
+    Cat(0.U(52.W), meip, false.B, seip, false.B, mtip, false.B, stip, false.B, msip, false.B, ssip, false.B)
+  }
+  def mipRegWrite(wData: UInt): Unit = {
+    var curBit = 0
+    for (mipVal <- mipRegValues.reverse) {
+      val curValBit = mipVal.getWidth
+      if (curValBit == 1) {
+        mipVal := wData(curBit)
+      } else {
+        mipVal := wData(curBit + curValBit -1, curBit)
+      }
+      curBit += curValBit
+    }
+  }
+}
+
+/** machine status related*/
 class MStatusRegIOs extends Bundle {
   val sd: Bool = Bool()
   val wpri5: UInt = UInt(27.W)

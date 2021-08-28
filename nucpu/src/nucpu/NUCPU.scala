@@ -4,7 +4,7 @@ import chisel3._
 import chisel3.util._
 import chisel3.util.experimental.decode._
 import difftest._
-import nucpu.DecodeParams.{CSR_N, M_XRD}
+import nucpu.DecodeParams.{CSR_C, CSR_N, CSR_S, M_XRD}
 
 class NUCPU()(implicit val p: Configs) extends Module {
   val io: NUCPUIOs = IO(new NUCPUIOs())
@@ -77,6 +77,9 @@ class NUCPU()(implicit val p: Configs) extends Module {
     ))
   csrFile.io.exception := DontCare
   csrFile.io.cause := DontCare
+  csrFile.io.interrupt.mtip := DontCare
+  csrFile.io.interrupt.msip := DontCare
+  csrFile.io.interrupt.meip := DontCare
   // Putch
   when(io.inst === p.instPutch.U) {
     printf("%c\n", regFile.io.wData)
@@ -88,13 +91,14 @@ class NUCPU()(implicit val p: Configs) extends Module {
     val instValidWire = ifStage.io.instEn && !this.reset.asBool() && (io.inst =/= 0.U)
     val instValidReg = RegNext(instValidWire)
     val curPCReg = RegNext(ifStage.io.curPC, 0.U)
+    val readCSR = RegNext(idStage.io.csrCMD === ("b" + CSR_S).U) // jump read CSR in __am_timer_uptime when read mcycle
     commitDiffTest.io.clock := this.clock
     commitDiffTest.io.coreid := 0.U
     commitDiffTest.io.index := 0.U
     commitDiffTest.io.valid := instValidReg
     commitDiffTest.io.pc := curPCReg
     commitDiffTest.io.instr := RegNext(io.inst)
-    commitDiffTest.io.skip := (commitDiffTest.io.instr === p.instPutch.U)
+    commitDiffTest.io.skip := (commitDiffTest.io.instr === p.instPutch.U) || readCSR
     commitDiffTest.io.isRVC := false.B
     commitDiffTest.io.scFailed := false.B
     commitDiffTest.io.wen := RegNext(idStage.io.rdWEn)

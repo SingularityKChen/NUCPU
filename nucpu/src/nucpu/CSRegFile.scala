@@ -22,6 +22,7 @@ class CSRegFile(implicit val p: Configs) extends Module {
     }
     val exception: Bool = Input(Bool())
     val cause: UInt = Input(UInt(p.busWidth.W))
+    val interrupt: InterruptIOs = Input(new InterruptIOs)
   })
   protected val wEn: Bool = io.cmd(2) && (io.cmd(1) || io.cmd(0))
   protected val systemInst: Bool = io.cmd === ("b" + CSR_I).U
@@ -50,8 +51,9 @@ class CSRegFile(implicit val p: Configs) extends Module {
   protected val stvec: UInt = RegInit(0.U(p.busWidth.W))
   protected val scause: UInt = RegInit(0.U(p.busWidth.W))
   protected val satp: UInt = RegInit(0.U(p.busWidth.W))
-  protected val mip: UInt = RegInit(0.U(p.busWidth.W))
-  protected val mie: UInt = RegInit(0.U(p.busWidth.W))
+  protected val reset_mip = WireInit(0.U.asTypeOf(new MIPRegIOs()))
+  protected val mip: MIPRegIOs = RegInit(reset_mip)
+  protected val mie: MIPRegIOs = RegInit(reset_mip)
   protected val mscratch: UInt = RegInit(0.U(p.busWidth.W))
   protected val sscratch: UInt = RegInit(0.U(p.busWidth.W))
   protected val mideleg: UInt = RegInit(0.U(p.busWidth.W))
@@ -71,17 +73,21 @@ class CSRegFile(implicit val p: Configs) extends Module {
   protected val isDRet: Bool = io.addr === p.dRetAddr && systemInst
   /**True to entry exception mode*/
   protected val exception: Bool = isECall || isEBreak || io.exception
+  protected val interrupt: Bool = Seq(io.interrupt.meip, io.interrupt.msip, io.interrupt.mtip).reduce( _ || _)
+  protected val processingInter: Bool = Seq(mie.meip, mie.msip, mie.mtip).reduce(_ || _)
   /**True to return from the exception mode*/
   protected val expReturn: Bool = isMRet || isSRet || isURet || isDRet
   /**Current Exception happens in Machine Mode*/
   protected val isMExp: Bool = isMMode && exception
+  protected val isMInter: Bool = isMMode && interrupt
   /**Current Exception happens in Supervisor Mode*/
   protected val isSExp: Bool = isSMode && exception
   // when exception, entry Machine mode or Supervisor
   curMode := Mux(expReturn, mstatus.mpp, Mux(exception, Mux(curMode <= p.sMode.U, p.sMode.U, p.mMode.U), curMode))
   protected val cause: UInt =
-    Mux(isECall, curMode + Causes.user_ecall.U,
-      Mux(isEBreak, Causes.breakpoint.U, io.cause)
+    Mux(isECall, curMode + Causes.user_ecall.U, // ECall
+    Mux(isEBreak, Causes.breakpoint.U,          // EBreak
+    Mux(isMInter && mie.mtip, Causes.ysyx_timer_interrupt.U, io.cause)) // Time Interrupt
     )
   // FIXME: isECall || isEBreak
   io.eRet := exception || expReturn
@@ -96,6 +102,8 @@ class CSRegFile(implicit val p: Configs) extends Module {
     CSRs.mcause.U -> mcause,
     CSRs.mepc.U -> mepc,
     CSRs.sepc.U -> sepc,
+    CSRs.mip.U -> mip.mipRegRead,
+    CSRs.mie.U -> mie.mipRegRead,
   )
   protected val rwRegMap: Array[(UInt, UInt)] = Array(
     CSRs.mtval.U -> mtval,
@@ -104,8 +112,6 @@ class CSRegFile(implicit val p: Configs) extends Module {
     CSRs.stvec.U -> stvec,
     CSRs.scause.U -> scause,
     CSRs.satp.U -> satp,
-    CSRs.mip.U -> mip,
-    CSRs.mie.U -> mie,
     CSRs.mscratch.U -> mscratch,
     CSRs.sscratch.U -> sscratch,
     CSRs.mideleg.U -> mideleg,
@@ -124,14 +130,43 @@ class CSRegFile(implicit val p: Configs) extends Module {
   // For special write reg
   mcycle := Mux(wEn && io.addr === CSRs.mcycle.U, rmwData, mcycle + 1.U)
   mepc :=
-    Mux(wEn && io.addr === CSRs.mepc.U, rmwData,
-    Mux(isMExp, Cat(io.pc(p.busWidth-1, 1), 0.U), mepc))
+    Mux(isMExp, Cat(io.pc(p.busWidth-1, 1), 0.U), // current PC if exception
+    Mux(isMInter, Cat(io.pc(p.busWidth-1, 1), 0.U) + 4.U, // next PC if interrupt
+    Mux(wEn && io.addr === CSRs.mepc.U, rmwData, mepc)))
   mcause :=
-    Mux(wEn && io.addr === CSRs.mcause.U, rmwData, // if write
-    Mux(isMExp, cause, mcause) // if exception
+    Mux(isMExp || isMInter, cause,  // if exception or interrupt
+    Mux(wEn && io.addr === CSRs.mcause.U, rmwData, mcause) // if write
+  )
+  // mie
+  when (isMInter) {
+    mie.mtip := io.interrupt.mtip
+    mie.msip := io.interrupt.msip
+    mie.meip := io.interrupt.meip
+  } .elsewhen(isMRet && processingInter) {
+    mie.mtip := mip.mtip
+    mie.msip := mip.msip
+    mie.meip := mip.meip
+  } .elsewhen(wEn && io.addr === CSRs.mie.U) {
+    mie.mipRegWrite(rmwData)
+  } .otherwise(
+    mie.mipRegWrite(mie.mipRegRead)
+  )
+  // mip
+  when (isMInter) {
+    mip.mtip := mie.mtip
+    mip.msip := mie.msip
+    mip.meip := mie.meip
+  } .elsewhen(isMRet && processingInter) {
+    mip.mtip := false.B
+    mip.msip := false.B
+    mip.meip := false.B
+  } .elsewhen(wEn && io.addr === CSRs.mip.U) {
+    mip.mipRegWrite(rmwData)
+  } .otherwise(
+    mip.mipRegWrite(mip.mipRegRead)
   )
   // mstatus
-  when (isMExp) {
+  when (isMExp || isMInter) {
     mstatus.mpie := mstatus.mie
     mstatus.mie := false.B
     mstatus.mpp := curMode
@@ -165,8 +200,8 @@ class CSRegFile(implicit val p: Configs) extends Module {
       csrDiffTest.io.mcause := mcause
       csrDiffTest.io.scause := scause
       csrDiffTest.io.satp := satp
-      csrDiffTest.io.mip := mip
-      csrDiffTest.io.mie := mie
+      csrDiffTest.io.mip := mip.mipRegRead
+      csrDiffTest.io.mie := mie.mipRegRead
       csrDiffTest.io.mscratch := mscratch
       csrDiffTest.io.sscratch := sscratch
       csrDiffTest.io.mideleg := mideleg
