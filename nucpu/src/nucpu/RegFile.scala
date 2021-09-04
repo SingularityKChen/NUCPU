@@ -10,6 +10,7 @@ class RegFile()(implicit val p: Configs) extends Module {
   protected val rs1Wire: UInt = Wire(UInt(p.busWidth.W))
   protected val rs2Wire: UInt = Wire(UInt(p.busWidth.W))
   protected val wAddrWire: UInt = io.wAddr
+  protected val a0Wire: UInt = regFiles(10.U)
   when(io.wEn & (wAddrWire =/= 0.U)){
     regFiles(wAddrWire) := io.wData
   }
@@ -17,9 +18,10 @@ class RegFile()(implicit val p: Configs) extends Module {
   rs2Wire := Mux(io.rs2REn, regFiles(io.rs2RAddr), 0.U)
   io.rs1RData := rs1Wire
   io.rs2RData := rs2Wire
+  io.putchData := a0Wire
   // for DiffTest
   if (p.diffTest) {
-    io.trapCode.foreach(x => x := regFiles(10)(2, 0))
+    io.trapCode.foreach(x => x := a0Wire(2, 0))
     val mod: DifftestArchIntRegState = Module(new DifftestArchIntRegState)
     mod.io.clock := this.clock
     mod.io.coreid := 0.U

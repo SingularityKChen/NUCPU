@@ -82,7 +82,7 @@ class NUCPU()(implicit val p: Configs) extends Module {
   csrFile.io.interrupt.meip := DontCare
   // Putch
   when(io.inst === p.instPutch.U) {
-    printf("%c\n", regFile.io.wData)
+    printf(p"${Character(regFile.io.putchData)}")
   }
   // For DiffTest
   if (p.diffTest) {
