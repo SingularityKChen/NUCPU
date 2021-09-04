@@ -42,3 +42,6 @@
 [submodule "DRAMsim3"]
 	path = DRAMsim3
 	url = git@github.com:OpenXiangShan/DRAMsim3.git
+[submodule "AM/oscpu-framework"]
+	path = AM/oscpu-framework
+	url = git@github.com:OSCPU/oscpu-framework.git

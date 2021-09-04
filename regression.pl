@@ -10,10 +10,12 @@ my ($regression, $riscv_test, $cpu_test, $am_test, $mario_test, $update_build);
 # AM Tests
 my ($time_test, $yield_test, $hello_test);
 my $AM_dir = $root_dir."/AM";
-my $riscv_test_dir = $AM_dir."/riscv-tests/build";
-my $cpu_test_dir = $AM_dir."/am-kernels/tests/cpu-tests/build";
+my $oscpu_bin_dir = $AM_dir."/oscpu-framework/bin";
+my $riscv_test_dir = $oscpu_bin_dir."/non-output/riscv-tests";
+my $cpu_test_dir = $oscpu_bin_dir."/non-output/cpu-tests";
 my $am_test_dir = $AM_dir."/am-kernels/tests/am-tests/build";
-my $mario_test_dir = $AM_dir."/fceux-am/build";
+my $mario_test_dir = $oscpu_bin_dir."/custom-output/mario";
+#
 my $waveform_filename = $root_dir."/build/NUCPU.vcd";
 my $regression_log_dir = $root_dir."/regression";
 my $emu_file = $root_dir."/build/emu";
@@ -30,7 +32,6 @@ GetOptions (
     'cputest|c'     => \$cpu_test,
     'amtest|a'      => \$am_test,
     'mario|m'       => \$mario_test,
-    'updatebuild|u' => \$update_build,
     'timetest|t'    => \$time_test,
     'yieldtest|y'   => \$yield_test,
 );
@@ -55,14 +56,6 @@ if (defined($yield_test)) {
 }
 if (defined($hello_test)) {
     $hello_test_arg = "h";
-}
-# update build C files
-if (defined($update_build)) {
-    foreach my $build_dir ($riscv_test_dir, $cpu_test_dir) {
-        system("cd $build_dir/../; make clean; make ARCH=riscv64-mycpu");
-    }
-    system("cd $mario_test_dir/../; make clean; make ARCH=riscv64-mycpu mainargs=mario");
-    printf("[INFO] Build finished.\n");
 }
 my @failed_tests;
 if (defined($riscv_test) || defined($cpu_test) || defined($am_test) ||
