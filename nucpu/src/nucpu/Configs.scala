@@ -32,6 +32,14 @@ class Configs(val diffTest: Boolean) {
   val hMode = 2
   val sMode = 1
   val uMode = 0
+  /**Base address of core local interrupt*/
+  val clintBaseAddr: UInt = 0x2000000.U
+  val clintBoundAddr: UInt = 0x200bfff.U
+  val msipOffset: UInt = 0x0.U
+  val mtimecmpOffset: UInt = 0x4000.U
+  val mtimeOffset: UInt = 0xbff8.U
+  /**the number of cycles required to increment the mtime register by 1*/
+  val tickCnt: Int = 0x100
 }
 
 class CacheConfigs(diffTest: Boolean) extends Configs(diffTest) {
