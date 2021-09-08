@@ -40,6 +40,8 @@ class Configs(val diffTest: Boolean) {
   val mtimeOffset: UInt = 0xbff8.U
   /**the number of cycles required to increment the mtime register by 1*/
   val tickCnt: Int = 0x100
+  /**Used in ysyx project for timer interrupt*/
+  val ysyx_timer_interrupt = "h8000000000000007"
 }
 
 class CacheConfigs(diffTest: Boolean) extends Configs(diffTest) {

@@ -24,6 +24,6 @@ class CLint(implicit val p: Configs) extends Module {
     p.mtimeOffset -> mtime,
     p.mtimecmpOffset -> mtimecmp,
   ))
-  io.mtip := RegNext(mtime >= mtimecmp)
+  io.mtip := RegNext((mtime >= mtimecmp) && (mtimecmp =/= 0.U))
   io.msip := RegNext(msip =/= 0.U)
 }

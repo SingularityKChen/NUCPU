@@ -28,6 +28,7 @@ class CSRegFile(implicit val p: Configs) extends Module {
   protected val systemInst: Bool = io.cmd === ("b" + CSR_I).U
   protected val misa: UInt = RegInit("h4000100".U) // RV64I FIXME
   protected val mcycle: UInt = RegInit(0.U(p.busWidth.W))
+  protected val minstret: UInt = RegInit(0.U(p.busWidth.W))
   protected val reset_mstatus = WireInit(0.U.asTypeOf(new MStatusRegIOs()))
   protected val mstatus: MStatusRegIOs = RegInit(reset_mstatus)
   // Sstatus Write Mask
@@ -87,7 +88,7 @@ class CSRegFile(implicit val p: Configs) extends Module {
   protected val cause: UInt =
     Mux(isECall, curMode + Causes.user_ecall.U, // ECall
     Mux(isEBreak, Causes.breakpoint.U,          // EBreak
-    Mux(isMInter && mie.mtip, Causes.ysyx_timer_interrupt.U, io.cause)) // Time Interrupt
+    Mux(isMInter && mie.mtip, p.ysyx_timer_interrupt.U, io.cause)) // Time Interrupt
     )
   // FIXME: isECall || isEBreak
   io.eRet := exception || expReturn
@@ -106,6 +107,7 @@ class CSRegFile(implicit val p: Configs) extends Module {
     CSRs.mie.U -> mie.mipRegRead,
   )
   protected val rwRegMap: Array[(UInt, UInt)] = Array(
+    CSRs.minstret.U -> minstret,
     CSRs.mtval.U -> mtval,
     CSRs.stval.U -> stval,
     CSRs.mtvec.U -> mtvec,

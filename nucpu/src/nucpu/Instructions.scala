@@ -93,8 +93,6 @@ object Causes {
   val load_guest_page_fault = 0x15
   val virtual_instruction = 0x16
   val store_guest_page_fault = 0x17
-  /**Used in ysyx project for timer interrupt*/
-  val ysyx_timer_interrupt = 0x807
   val all: Array[Int] = {
     val res = collection.mutable.ArrayBuffer[Int]()
     res += misaligned_fetch
@@ -116,7 +114,6 @@ object Causes {
     res += load_guest_page_fault
     res += virtual_instruction
     res += store_guest_page_fault
-    res += ysyx_timer_interrupt
     res.toArray
   }
 }

@@ -15,6 +15,7 @@ class NUCPU()(implicit val p: Configs) extends Module {
   protected val exeStage: EXEStage = Module(new EXEStage())
   protected val regFile: RegFile = Module(new RegFile())
   protected val csrFile: CSRegFile = Module(new CSRegFile())
+  protected val clint: CLint = Module(new CLint())
   // inst fetch
   io.instAddr := ifStage.io.curPC
   io.instValid := ifStage.io.instEn
@@ -49,9 +50,11 @@ class NUCPU()(implicit val p: Configs) extends Module {
   memStage.io.memCmd := idStage.io.memCmd
   memStage.io.exeMemValid := idStage.io.mem
   // cpu mem_stage -> memory
+  /**If the read/write address is in the range of clint MMIO, then operate on clint.*/
+  protected val opClint: Bool = (memStage.io.memAddr <= p.clintBoundAddr) && (memStage.io.memAddr >= p.clintBaseAddr)
   io.memAddr := memStage.io.memAddr
-  memStage.io.memRData := io.memRData
-  io.memDoWrite := memStage.io.memDoWrite
+  memStage.io.memRData := Mux(opClint, clint.io.readData, io.memRData)
+  io.memDoWrite := Mux(opClint, false.B, memStage.io.memDoWrite)
   io.memWData := memStage.io.memWData
   io.memMask := memStage.io.memMask
   io.memValid := memStage.io.memValid
@@ -77,9 +80,13 @@ class NUCPU()(implicit val p: Configs) extends Module {
     ))
   csrFile.io.exception := DontCare
   csrFile.io.cause := DontCare
-  csrFile.io.interrupt.mtip := DontCare
-  csrFile.io.interrupt.msip := DontCare
+  csrFile.io.interrupt.mtip := clint.io.mtip
+  csrFile.io.interrupt.msip := clint.io.msip
   csrFile.io.interrupt.meip := DontCare
+  // CLINT
+  clint.io.addr := memStage.io.memAddr
+  clint.io.wEn := opClint && memStage.io.memDoWrite
+  clint.io.writeData := memStage.io.memWData
   // Putch
   when(io.inst === p.instPutch.U) {
     printf(p"${Character(regFile.io.putchData)}")
@@ -98,7 +105,7 @@ class NUCPU()(implicit val p: Configs) extends Module {
     commitDiffTest.io.valid := instValidReg
     commitDiffTest.io.pc := curPCReg
     commitDiffTest.io.instr := RegNext(io.inst)
-    commitDiffTest.io.skip := (commitDiffTest.io.instr === p.instPutch.U) || readCSR
+    commitDiffTest.io.skip := (commitDiffTest.io.instr === p.instPutch.U) || readCSR || RegNext(opClint)
     commitDiffTest.io.isRVC := false.B
     commitDiffTest.io.scFailed := false.B
     commitDiffTest.io.wen := RegNext(idStage.io.rdWEn)
