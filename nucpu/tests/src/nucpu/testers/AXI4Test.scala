@@ -10,24 +10,21 @@ import axi4._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
-//import scala.util.Random
+import scala.util.Random
 
 
 
 class AXI4Test extends AnyFlatSpec with ChiselScalatestTester with Matchers{
   implicit val p: AXIConfigs= new AXIConfigs()
 
-  //transaction
 
-//  class info{
-//    val address: UInt = UInt(p.addrBits.W)
-//    val data: UInt = UInt(p.dataBits.W)
-//    val req: UInt = UInt(p.rwreqBits.W)
-//  }
+  //transaction
 
   //sequence
 
   //driver
+
+
 
   behavior of "AXI4"
 
@@ -41,28 +38,62 @@ class AXI4Test extends AnyFlatSpec with ChiselScalatestTester with Matchers{
       dut.reset.poke(false.B)
       clock.step()
       //sequencer
-//      val testSeq = Seq.fill(4)(Random.nextInt(100))
-val testSeq = Seq(32,33,34,35)
+      val testSeq = Seq.fill(10)(Random.nextInt(100))
+
       //test begin
       for (i <- testSeq.indices){
 
-        dutIO.rw_i.bits.req.poke(0.U)
-        dutIO.rw_i.bits.rw_addr.poke((8*i).U(p.addrBits.W))
-        dutIO.rw_i.bits.rw_size.poke("b10".U)
-        dutIO.rw_i.valid.poke(true.B)
+        dutIO.rw_i.bits.req.poke(Random.nextInt(2).U)
 
-        clock.step()
+        if(dutIO.rw_i.bits.req.peek().litValue() == 0) {
+          dutIO.rw_i.bits.rw_addr.poke((8 * i).U(p.addrBits.W))
+          dutIO.rw_i.bits.rw_size.poke("b10".U)
+          dutIO.rw_i.valid.poke(true.B)
 
-        dutIO.ar.ready.poke(true.B)
+          clock.step()
 
-        clock.step(2)
+          dutIO.ar.ready.poke(true.B)
 
+          clock.step()
+          dutIO.ar.ready.poke(false.B)
 
-        dutIO.r.valid.poke(true.B)
-        dutIO.r.bits.data.poke(testSeq(i).U)
+          dutIO.r.valid.poke(true.B)
 
-        dutIO.r.bits.last.poke(true.B)
-        dutIO.r.bits.resp.poke("b00".U)
+          val addr = (dutIO.ar.bits.addr.peek().litValue() >> 3).toInt
+          dutIO.r.bits.data.poke(testSeq(addr).U)
+          //dutIO.r.bits.data.poke(testSeq(i).U)
+
+          dutIO.r.bits.last.poke(true.B)
+          dutIO.r.bits.resp.poke("b00".U)
+
+          clock.step()
+          dutIO.r.valid.poke(false.B)
+          dutIO.rw_i.valid.poke(false.B)
+          dutIO.r.bits.last.poke(false.B)
+          clock.step()
+        }else{
+          dutIO.rw_i.bits.rw_addr.poke((8 * i).U(p.addrBits.W))
+          dutIO.rw_i.bits.rw_size.poke("b10".U)
+          dutIO.rw_i.valid.poke(true.B)
+          dutIO.rw_i.bits.data_write.poke(testSeq(i).U)
+
+          clock.step()
+          dutIO.aw.ready.poke(true.B)
+
+          clock.step()
+          dutIO.aw.ready.poke(false.B)
+
+          dutIO.w.ready.poke(true.B)
+
+          clock.step()
+          dutIO.b.valid.poke(true.B)
+          dutIO.b.bits.resp.poke("b00".U)
+
+          clock.step()
+          dutIO.w.ready.poke(false.B)
+          dutIO.rw_i.valid.poke(false.B)
+          dutIO.b.valid.poke(false.B)
+        }
 
 
       }
