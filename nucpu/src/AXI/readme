@@ -1,4 +1,6 @@
 AXI-64bit
-This file includes two AXI parts.
-AXI for MEM
-AXI for MMIO
+This file includes two parts:AXI4 and AXI4Timer.
+AXI4 module is AXI_rw module. It provides a axi4 (read and write) interface between the CPU and crossbar.
+AXI4Timer module works for CLINT(Timer interrupt).
+Because the DMA part is not necessary, the first edition of AXI4Timer is an individual part. It is not a AXI4 Slave module.
+On the other hand, the second edition of AXI4Timer can be an AXI4 slave module.
