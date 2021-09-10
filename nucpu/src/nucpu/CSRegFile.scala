@@ -110,17 +110,17 @@ class CSRegFile(implicit val p: Configs) extends Module {
   io.rData := MuxLookup(io.addr, 0.U, rwSpecialRegMap ++ rwRegMap ++ roRegMap)
   // CSR Write
   // For common write reg
-  rwRegMap.foreach({ case (addr, reg) => reg := Mux(wEn && io.addr === addr, rmwData, reg)
+  rwRegMap.foreach({ case (addr, reg) => reg := Mux(wEn && (io.addr === addr), rmwData, reg)
   })
   // For special write reg
-  mcycle := Mux(wEn && io.addr === CSRs.mcycle.U, rmwData, mcycle + 1.U)
+  mcycle := Mux(wEn && (io.addr === CSRs.mcycle.U), rmwData, mcycle + 1.U)
   mepc :=
     Mux(isMExp, Cat(io.pc(p.busWidth-1, 1), 0.U), // current PC if exception
     Mux(isMInter, Cat(io.pc(p.busWidth-1, 1), 0.U) + 4.U, // next PC if interrupt
-    Mux(wEn && io.addr === CSRs.mepc.U, rmwData, mepc)))
+    Mux(wEn && (io.addr === CSRs.mepc.U), rmwData, mepc)))
   mcause :=
     Mux(isMExp || isMInter, cause,  // if exception or interrupt
-    Mux(wEn && io.addr === CSRs.mcause.U, rmwData, mcause) // if write
+    Mux(wEn && (io.addr === CSRs.mcause.U), rmwData, mcause) // if write
   )
   // mie
   when (isMInter) {
@@ -131,7 +131,7 @@ class CSRegFile(implicit val p: Configs) extends Module {
     mie.mtip := mip.mtip
     mie.msip := mip.msip
     mie.meip := mip.meip
-  } .elsewhen(wEn && io.addr === CSRs.mie.U) {
+  } .elsewhen(wEn && (io.addr === CSRs.mie.U)) {
     mie.mipRegWrite(rmwData)
   } .otherwise(
     mie.mipRegWrite(mie.mipRegRead)
@@ -145,7 +145,7 @@ class CSRegFile(implicit val p: Configs) extends Module {
     mip.mtip := false.B
     mip.msip := false.B
     mip.meip := false.B
-  } .elsewhen(wEn && io.addr === CSRs.mip.U) {
+  } .elsewhen(wEn && (io.addr === CSRs.mip.U)) {
     mip.mipRegWrite(rmwData)
   } .otherwise(
     mip.mipRegWrite(mip.mipRegRead)
@@ -159,7 +159,7 @@ class CSRegFile(implicit val p: Configs) extends Module {
     mstatus.mpie := true.B
     mstatus.mie := mstatus.mpie
     mstatus.mpp := p.uMode.U
-  } .elsewhen(wEn && io.addr === CSRs.mstatus.U) {
+  } .elsewhen(wEn && (io.addr === CSRs.mstatus.U)) {
     mstatus.mStatusRegWrite(rmwData)
   } .otherwise(
     mstatus.mStatusRegWrite(mstatus.mStatusRegRead)
