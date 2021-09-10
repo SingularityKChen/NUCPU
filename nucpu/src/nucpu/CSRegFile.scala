@@ -6,24 +6,7 @@ import difftest.DifftestCSRState
 import nucpu.DecodeParams._
 
 class CSRegFile(implicit val p: Configs) extends Module {
-  val io = IO(new Bundle {
-    val pc: UInt = Input(UInt(p.busWidth.W))
-    val cmd: UInt = Input(UInt(CSR_X.length.W))
-    val addr: UInt = Input(UInt(p.instImmW.W))
-    val rData: UInt = Output(UInt(p.busWidth.W))
-    val wData: UInt = Input(UInt(p.busWidth.W))
-    val time: UInt = Output(UInt(p.busWidth.W))
-    val eRet: Bool = Output(Bool())
-    val evec: UInt = Output(UInt(p.busWidth.W))
-    val status = new Bundle {
-      val wfi: Bool = Output(Bool())
-      val mie: Bool = Output(Bool())
-      val isa: UInt = Output(UInt(p.instW.W))
-    }
-    val exception: Bool = Input(Bool())
-    val cause: UInt = Input(UInt(p.busWidth.W))
-    val interrupt: InterruptIOs = Input(new InterruptIOs)
-  })
+  val io: CSRegFileIOs = IO(new CSRegFileIOs())
   protected val wEn: Bool = io.cmd(2) && (io.cmd(1) || io.cmd(0))
   protected val systemInst: Bool = io.cmd === ("b" + CSR_I).U
   protected val misa: UInt = RegInit("h4000100".U) // RV64I FIXME

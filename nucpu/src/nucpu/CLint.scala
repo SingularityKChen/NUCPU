@@ -4,14 +4,7 @@ import chisel3._
 import chisel3.util._
 
 class CLint(implicit val p: Configs) extends Module {
-  val io = IO(new Bundle {
-    val mtip: Bool = Output(Bool())
-    val msip: Bool = Output(Bool())
-    val addr: UInt = Input(UInt(p.busWidth.W))
-    val readData: UInt = Output(UInt(p.busWidth.W))
-    val wEn: Bool = Input(Bool())
-    val writeData: UInt = Input(UInt(p.busWidth.W))
-  })
+  val io: CLintIOs = IO(new CLintIOs())
   protected val mtime: UInt = RegInit(0.U(p.busWidth.W))
   protected val mtimecmp: UInt = RegInit(0.U(p.busWidth.W))
   protected val msip: UInt = RegInit(0.U(p.busWidth.W))
