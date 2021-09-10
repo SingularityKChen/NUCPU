@@ -17,11 +17,11 @@ class IDStage()(implicit val p: Configs) extends Module {
   protected val immSign: UInt = Mux(instCtrlWires.immSel === s"b$IMM_Z".U, 0.U, io.inst(31).asUInt())
   protected val imm30_20: UInt = Mux(instCtrlWires.immSel === s"b$IMM_U".U, io.inst(30, 20), Cat(Fill(11, immSign)))
   protected val imm19_12: UInt = Mux(instCtrlWires.immSel === BitPat("b01?"), io.inst(19, 12), Cat(Fill(8, immSign)))
-  // TODO: IMM_Z
   protected val imm11: UInt = MuxLookup(instCtrlWires.immSel, immSign, Array(
     s"b$IMM_UJ".U -> io.inst(20),
     s"b$IMM_SB".U -> io.inst(7),
     s"b$IMM_U".U -> 0.U,
+    s"b$IMM_Z".U -> 0.U,
   ))
   protected val imm10_5: UInt = Mux((instCtrlWires.immSel === s"b$IMM_U".U) || (instCtrlWires.immSel === s"b$IMM_Z".U),
     0.U, io.inst(30, 25))
