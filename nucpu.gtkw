@@ -1,0 +1,376 @@
+[*]
+[*] GTKWave Analyzer v3.3.103 (w)1999-2019 BSI
+[*] Wed Sep  8 15:53:16 2021
+[*]
+[dumpfile] "./test_run_dir/amtest-interrupt-test.vcd"
+[dumpfile_mtime] "Wed Sep  8 15:47:35 2021"
+[dumpfile_size] 6840414
+[savefile] "./nucpu.gtkw"
+[timestart] 2133
+[size] 1848 1016
+[pos] -1 -1
+*-0.184707 2137 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] TOP.
+[treeopen] TOP.SimTop.
+[treeopen] TOP.SimTop.nucpu.
+[treeopen] TOP.SimTop.nucpu.csrFile.
+[treeopen] TOP.SimTop.nucpu.exeStage.
+[treeopen] TOP.SimTop.nucpu.regFile.
+[sst_width] 303
+[signals_width] 378
+[sst_expanded] 1
+[sst_vpaned_height] 343
+@28
+TOP.clock
+@200
+-dMem
+@28
+TOP.SimTop.dMem.clk
+TOP.SimTop.dMem.en
+@22
+TOP.SimTop.dMem.rIdx[63:0]
+TOP.SimTop.dMem.rdata[63:0]
+TOP.SimTop.dMem.wIdx[63:0]
+TOP.SimTop.dMem.wdata[63:0]
+@28
+TOP.SimTop.dMem.wen
+@22
+TOP.SimTop.dMem.wmask[63:0]
+@200
+-iMem
+@28
+TOP.SimTop.iMem.clk
+TOP.SimTop.iMem.en
+@22
+TOP.SimTop.iMem.rIdx[63:0]
+TOP.SimTop.iMem.rdata[63:0]
+TOP.SimTop.iMem.wIdx[63:0]
+TOP.SimTop.iMem.wdata[63:0]
+@28
+TOP.SimTop.iMem.wen
+TOP.SimTop.iMem.wen
+@200
+-Top
+@28
+TOP.SimTop.nucpu_clock
+@22
+TOP.SimTop.nucpu_io_instAddr[63:0]
+@28
+TOP.SimTop.nucpu_io_instValid
+@c00022
+TOP.SimTop.nucpu_io_inst[31:0]
+@28
+(0)TOP.SimTop.nucpu_io_inst[31:0]
+(1)TOP.SimTop.nucpu_io_inst[31:0]
+(2)TOP.SimTop.nucpu_io_inst[31:0]
+(3)TOP.SimTop.nucpu_io_inst[31:0]
+(4)TOP.SimTop.nucpu_io_inst[31:0]
+(5)TOP.SimTop.nucpu_io_inst[31:0]
+(6)TOP.SimTop.nucpu_io_inst[31:0]
+(7)TOP.SimTop.nucpu_io_inst[31:0]
+(8)TOP.SimTop.nucpu_io_inst[31:0]
+(9)TOP.SimTop.nucpu_io_inst[31:0]
+(10)TOP.SimTop.nucpu_io_inst[31:0]
+(11)TOP.SimTop.nucpu_io_inst[31:0]
+(12)TOP.SimTop.nucpu_io_inst[31:0]
+(13)TOP.SimTop.nucpu_io_inst[31:0]
+(14)TOP.SimTop.nucpu_io_inst[31:0]
+(15)TOP.SimTop.nucpu_io_inst[31:0]
+(16)TOP.SimTop.nucpu_io_inst[31:0]
+(17)TOP.SimTop.nucpu_io_inst[31:0]
+(18)TOP.SimTop.nucpu_io_inst[31:0]
+(19)TOP.SimTop.nucpu_io_inst[31:0]
+(20)TOP.SimTop.nucpu_io_inst[31:0]
+(21)TOP.SimTop.nucpu_io_inst[31:0]
+(22)TOP.SimTop.nucpu_io_inst[31:0]
+(23)TOP.SimTop.nucpu_io_inst[31:0]
+(24)TOP.SimTop.nucpu_io_inst[31:0]
+(25)TOP.SimTop.nucpu_io_inst[31:0]
+(26)TOP.SimTop.nucpu_io_inst[31:0]
+(27)TOP.SimTop.nucpu_io_inst[31:0]
+(28)TOP.SimTop.nucpu_io_inst[31:0]
+(29)TOP.SimTop.nucpu_io_inst[31:0]
+(30)TOP.SimTop.nucpu_io_inst[31:0]
+(31)TOP.SimTop.nucpu_io_inst[31:0]
+@1401200
+-group_end
+@22
+TOP.SimTop.nucpu_io_memAddr[63:0]
+@28
+TOP.SimTop.nucpu_io_memDoWrite
+@22
+TOP.SimTop.nucpu_io_memRData[63:0]
+@28
+TOP.SimTop.nucpu_io_memValid
+@22
+TOP.SimTop.nucpu_io_memWData[63:0]
+@28
+TOP.SimTop.nucpu_reset
+@200
+-IFStage
+@22
+TOP.SimTop.nucpu.ifStage.io_nextPC[63:0]
+TOP.SimTop.nucpu.ifStage_io_nextPC[63:0]
+@28
+TOP.SimTop.nucpu.ifStage.io_jumpPC
+[color] 3
+TOP.SimTop.nucpu.idStage_io_jalr
+[color] 3
+TOP.SimTop.nucpu.idStage_io_jal
+@22
+TOP.SimTop.nucpu.exeStage_io_rdData[63:0]
+@28
+[color] 3
+TOP.SimTop.nucpu.csrFile_io_eRet
+@22
+TOP.SimTop.nucpu.csrFile_io_evec[63:0]
+TOP.SimTop.nucpu.idStage_io_jumpPCVal[63:0]
+[color] 2
+TOP.SimTop.nucpu.ifStage.pc[63:0]
+@200
+-IDStage
+@22
+[color] 1
+TOP.SimTop.nucpu.idStage.io_inst[31:0]
+@28
+TOP.SimTop.nucpu.idStage.io_jal
+[color] 7
+TOP.SimTop.nucpu.idStage.io_jalr
+@22
+TOP.SimTop.nucpu.idStage.io_jumpPCVal[63:0]
+TOP.SimTop.nucpu.idStage.imm[63:0]
+@24
+TOP.SimTop.nucpu.idStage.io_rs1RAddr[4:0]
+TOP.SimTop.nucpu.idStage.io_rs2RAddr[4:0]
+@22
+TOP.SimTop.nucpu.idStage.io_rdWAddr[4:0]
+@28
+[color] 7
+TOP.SimTop.nucpu.idStage.io_csrCMD[2:0]
+@200
+-ID IMM
+@28
+TOP.SimTop.nucpu.idStage.io_inst[31:0]
+@22
+TOP.SimTop.nucpu.idStage.imm[63:0]
+@28
+TOP.SimTop.nucpu.idStage.immSign
+@22
+TOP.SimTop.nucpu.idStage.imm30_20[10:0]
+@28
+TOP.SimTop.nucpu.idStage.imm19_12[7:0]
+TOP.SimTop.nucpu.idStage.imm11
+TOP.SimTop.nucpu.idStage.imm10_5[5:0]
+TOP.SimTop.nucpu.idStage.imm4_1[3:0]
+TOP.SimTop.nucpu.idStage.imm0
+@200
+-ExeStage
+@28
+TOP.SimTop.nucpu.exeStage.io_alu1Sel[1:0]
+TOP.SimTop.nucpu.exeStage.io_alu2Sel[1:0]
+@22
+TOP.SimTop.nucpu.exeStage.io_aluFn[3:0]
+TOP.SimTop.nucpu.exeStage.io_rs1Data[63:0]
+TOP.SimTop.nucpu.exeStage.io_rs2Data[63:0]
+TOP.SimTop.nucpu.exeStage.io_imm[63:0]
+TOP.SimTop.nucpu.exeStage.io_rdData[63:0]
+@28
+TOP.SimTop.nucpu.exeStage.rs1Only32
+TOP.SimTop.nucpu.exeStage.rs2Only5
+@22
+TOP.SimTop.nucpu.exeStage.rs1Fill[31:0]
+@28
+TOP.SimTop.nucpu.exeStage.isSRA
+TOP.SimTop.nucpu.exeStage.isSR
+@200
+-ALU
+@24
+TOP.SimTop.nucpu.exeStage.alu.io_func[3:0]
+@22
+TOP.SimTop.nucpu.exeStage.alu.io_op1[63:0]
+TOP.SimTop.nucpu.exeStage.alu.io_op2[63:0]
+TOP.SimTop.nucpu.exeStage.alu.slWire[126:0]
+TOP.SimTop.nucpu.exeStage.alu.srWire[63:0]
+TOP.SimTop.nucpu.exeStage.alu.io_results[63:0]
+@200
+-MemStage
+@22
+TOP.SimTop.nucpu.memStage.io_memCmd[4:0]
+@28
+TOP.SimTop.nucpu.memStage.io_func3[2:0]
+@22
+TOP.SimTop.nucpu.memStage.io_memRData[63:0]
+TOP.SimTop.nucpu.memStage.io_wbData[63:0]
+TOP.SimTop.nucpu.memStage.lwValidData[31:0]
+TOP.SimTop.nucpu.memStage.io_memMask[63:0]
+TOP.SimTop.nucpu.memStage.io_memWData[63:0]
+@28
+TOP.SimTop.nucpu.memStage.io_memValid
+TOP.SimTop.nucpu.memStage.io_memDoWrite
+@22
+TOP.SimTop.nucpu.memStage.io_exeAddr[63:0]
+@28
+TOP.SimTop.nucpu.memStage.io_exeAddr[63:0]
+@22
+TOP.SimTop.nucpu.memStage.lwWire[63:0]
+TOP.SimTop.nucpu.memStage.lhWire[63:0]
+TOP.SimTop.nucpu.memStage.lbWire[63:0]
+@200
+-RegFile
+@22
+[color] 3
+TOP.SimTop.nucpu.regFile.io_rs1RData[63:0]
+[color] 3
+TOP.SimTop.nucpu.regFile.io_rs2RData[63:0]
+@200
+-CSR
+@28
+[color] 7
+TOP.SimTop.nucpu.opCSR
+TOP.SimTop.nucpu.idStage.io_csrCMD[2:0]
+@22
+TOP.SimTop.nucpu.csrFile.io_addr[11:0]
+TOP.SimTop.nucpu.csrFile.io_rData[63:0]
+@28
+[color] 7
+TOP.SimTop.nucpu.csrFile.wEn
+@22
+TOP.SimTop.nucpu.csrFile.io_wData[63:0]
+TOP.SimTop.nucpu.csrFile.rmwData[63:0]
+TOP.SimTop.nucpu.csrFile.io_evec[63:0]
+TOP.SimTop.nucpu.csrFile.io_pc[63:0]
+@28
+[color] 1
+TOP.SimTop.nucpu.csrFile.curMode[1:0]
+TOP.SimTop.nucpu.csrFile.isEBreak
+TOP.SimTop.nucpu.csrFile.isECall
+TOP.SimTop.nucpu.csrFile.exception
+TOP.SimTop.nucpu.csrFile.expReturn
+@24
+TOP.SimTop.nucpu.csrFile.mcycle[63:0]
+@22
+TOP.SimTop.nucpu.csrFile.mcause[63:0]
+TOP.SimTop.nucpu.csrFile.mepc[63:0]
+TOP.SimTop.nucpu.csrFile.mtvec[63:0]
+TOP.SimTop.nucpu.csrFile.csrDiffTest.mstatus[63:0]
+@200
+-CSR MStatus
+@28
+TOP.SimTop.nucpu.csrFile.mstatus_fs[1:0]
+TOP.SimTop.nucpu.csrFile.mstatus_mie
+TOP.SimTop.nucpu.csrFile.mstatus_mpie
+TOP.SimTop.nucpu.csrFile.mstatus_mpp[1:0]
+TOP.SimTop.nucpu.csrFile.mstatus_mprv
+TOP.SimTop.nucpu.csrFile.mstatus_mxr
+TOP.SimTop.nucpu.csrFile.mstatus_sd
+TOP.SimTop.nucpu.csrFile.mstatus_sie
+TOP.SimTop.nucpu.csrFile.mstatus_spie
+TOP.SimTop.nucpu.csrFile.mstatus_spp
+TOP.SimTop.nucpu.csrFile.mstatus_sum
+TOP.SimTop.nucpu.csrFile.mstatus_sxl[1:0]
+TOP.SimTop.nucpu.csrFile.mstatus_tsr
+TOP.SimTop.nucpu.csrFile.mstatus_tvm
+TOP.SimTop.nucpu.csrFile.mstatus_tw
+TOP.SimTop.nucpu.csrFile.mstatus_uie
+TOP.SimTop.nucpu.csrFile.mstatus_upie
+TOP.SimTop.nucpu.csrFile.mstatus_uxl[1:0]
+TOP.SimTop.nucpu.csrFile.mstatus_xs[1:0]
+@200
+-CLint
+@29
+[color] 2
+TOP.SimTop.nucpu.clint.io_msip
+[color] 2
+TOP.SimTop.nucpu.clint.io_mtip
+@28
+TOP.SimTop.nucpu.clint.io_wEn
+@22
+TOP.SimTop.nucpu.clint.io_writeData[63:0]
+TOP.SimTop.nucpu.clint.io_readData[63:0]
+TOP.SimTop.nucpu.clint.tickCnt[7:0]
+@28
+TOP.SimTop.nucpu.clint.cntWrap
+@22
+TOP.SimTop.nucpu.clint.mtime[63:0]
+TOP.SimTop.nucpu.clint.mtimecmp[63:0]
+@200
+-DiffTest
+@28
+TOP.SimTop.nucpu.commitDiffTest.clock
+@200
+-Commit Diff
+@22
+[color] 1
+TOP.SimTop.nucpu.commitDiffTest.instr[31:0]
+TOP.SimTop.nucpu.commitDiffTest.pc[63:0]
+@28
+TOP.SimTop.nucpu.commitDiffTest.valid
+TOP.SimTop.nucpu.commitDiffTest.skip
+@22
+TOP.SimTop.nucpu.commitDiffTest.wdata[63:0]
+TOP.SimTop.nucpu.commitDiffTest.wdest[7:0]
+@28
+TOP.SimTop.nucpu.commitDiffTest.wen
+@200
+-Load Diff
+@22
+TOP.SimTop.nucpu.loadDiffTest.fuType[7:0]
+TOP.SimTop.nucpu.loadDiffTest.index[7:0]
+@24
+TOP.SimTop.nucpu.loadDiffTest.opType[7:0]
+@22
+TOP.SimTop.nucpu.loadDiffTest.paddr[63:0]
+@28
+TOP.SimTop.nucpu.loadDiffTest.valid
+@200
+-Store Diff
+@22
+TOP.SimTop.nucpu.storeDiffTest.storeAddr[63:0]
+TOP.SimTop.nucpu.storeDiffTest.storeData[63:0]
+@28
+TOP.SimTop.nucpu.storeDiffTest.storeMask[7:0]
+TOP.SimTop.nucpu.storeDiffTest.valid
+@200
+-Trap
+@28
+TOP.SimTop.nucpu.trapDiffTest.valid
+@24
+TOP.SimTop.nucpu.trapDiffTest.cycleCnt[63:0]
+TOP.SimTop.nucpu.trapDiffTest.instrCnt[63:0]
+@200
+-RegFiles
+@22
+TOP.SimTop.nucpu.regFile.regFiles_0[63:0]
+TOP.SimTop.nucpu.regFile.regFiles_1[63:0]
+TOP.SimTop.nucpu.regFile.regFiles_2[63:0]
+TOP.SimTop.nucpu.regFile.regFiles_3[63:0]
+TOP.SimTop.nucpu.regFile.regFiles_4[63:0]
+TOP.SimTop.nucpu.regFile.regFiles_5[63:0]
+TOP.SimTop.nucpu.regFile.regFiles_6[63:0]
+TOP.SimTop.nucpu.regFile.regFiles_7[63:0]
+TOP.SimTop.nucpu.regFile.regFiles_8[63:0]
+TOP.SimTop.nucpu.regFile.regFiles_9[63:0]
+TOP.SimTop.nucpu.regFile.regFiles_10[63:0]
+TOP.SimTop.nucpu.regFile.regFiles_11[63:0]
+TOP.SimTop.nucpu.regFile.regFiles_12[63:0]
+TOP.SimTop.nucpu.regFile.regFiles_13[63:0]
+TOP.SimTop.nucpu.regFile.regFiles_14[63:0]
+TOP.SimTop.nucpu.regFile.regFiles_15[63:0]
+TOP.SimTop.nucpu.regFile.regFiles_16[63:0]
+TOP.SimTop.nucpu.regFile.regFiles_17[63:0]
+TOP.SimTop.nucpu.regFile.regFiles_18[63:0]
+TOP.SimTop.nucpu.regFile.regFiles_19[63:0]
+TOP.SimTop.nucpu.regFile.regFiles_20[63:0]
+TOP.SimTop.nucpu.regFile.regFiles_21[63:0]
+TOP.SimTop.nucpu.regFile.regFiles_22[63:0]
+TOP.SimTop.nucpu.regFile.regFiles_23[63:0]
+TOP.SimTop.nucpu.regFile.regFiles_24[63:0]
+TOP.SimTop.nucpu.regFile.regFiles_25[63:0]
+TOP.SimTop.nucpu.regFile.regFiles_26[63:0]
+TOP.SimTop.nucpu.regFile.regFiles_27[63:0]
+TOP.SimTop.nucpu.regFile.regFiles_28[63:0]
+TOP.SimTop.nucpu.regFile.regFiles_29[63:0]
+TOP.SimTop.nucpu.regFile.regFiles_30[63:0]
+TOP.SimTop.nucpu.regFile.regFiles_31[63:0]
+[pattern_trace] 1
+[pattern_trace] 0
